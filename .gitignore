@@ -35,3 +35,7 @@ deploy_kali.zip
 logo_b64.txt
 logo_base64.txt
 test_factura.pdf
+
+# Instrucciones personales de trabajo (OpenCode) - contienen credenciales
+NEXT_SESSION_PROMPT.md
+REGLAS.md
