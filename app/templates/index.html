@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<section class="hero-section" style="background: linear-gradient(135deg, #0d5c2e, #28a745); padding: 100px 0 120px;">
+    <div class="container-fluid px-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="text-center text-white mb-5">
+                    <h1 class="display-3 fw-bold mb-3">Encuentra tu tour ideal</h1>
+                    <p class="lead fs-3 mb-0">Descubre los mejores destinos de Chiriquí, Panamá</p>
+                </div>
+                
+                <div class="card shadow-lg border-0" style="border-radius: 16px;">
+                    <div class="card-body p-4">
+                        <form action="{{ url_for('main.buscar') }}" method="GET">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-2 col-6">
+                                    <label class="form-label fw-bold small text-uppercase text-secondary mb-1">Destino</label>
+                                    <select name="destino" id="destinoSelect" class="form-select form-select-sm border-0 bg-light">
+                                        <option value="">Todos</option>
+                                        <option value="Bocas del Toro" {% if destino == 'Bocas del Toro' %}selected{% endif %}>Bocas del Toro</option>
+                                        <option value="Chiriquí" {% if destino == 'Chiriquí' %}selected{% endif %}>Chiriquí</option>
+                                        <option value="Coclé" {% if destino == 'Coclé' %}selected{% endif %}>Coclé</option>
+                                        <option value="Colón" {% if destino == 'Colón' %}selected{% endif %}>Colón</option>
+                                        <option value="Darién" {% if destino == 'Darién' %}selected{% endif %}>Darién</option>
+                                        <option value="Herrera" {% if destino == 'Herrera' %}selected{% endif %}>Herrera</option>
+                                        <option value="Los Santos" {% if destino == 'Los Santos' %}selected{% endif %}>Los Santos</option>
+                                        <option value="Panamá" {% if destino == 'Panamá' %}selected{% endif %}>Panamá</option>
+                                        <option value="Panamá Oeste" {% if destino == 'Panamá Oeste' %}selected{% endif %}>Panamá Oeste</option>
+                                        <option value="Veraguas" {% if destino == 'Veraguas' %}selected{% endif %}>Veraguas</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 col-6">
+                                    <label class="form-label fw-bold small text-uppercase text-secondary mb-1">Categoría</label>
+                                    <select name="categoria" id="categoriaSelect" class="form-select form-select-sm border-0 bg-light">
+                                        <option value="">Todas</option>
+                                        <option value="playa" {% if categoria == 'playa' %}selected{% endif %}>Playa</option>
+                                        <option value="montana" {% if categoria == 'montana' %}selected{% endif %}>Montaña</option>
+                                        <option value="ecoturismo" {% if categoria == 'ecoturismo' %}selected{% endif %}>Ecoturismo</option>
+                                        <option value="aventura" {% if categoria == 'aventura' %}selected{% endif %}>Aventura</option>
+                                        <option value="cultural" {% if categoria == 'cultural' %}selected{% endif %}>Cultural</option>
+                                        <option value="gastronomica" {% if categoria == 'gastronomica' %}selected{% endif %}>Gastronómica</option>
+                                        <option value="islas" {% if categoria == 'islas' %}selected{% endif %}>Islas</option>
+                                        <option value="historico" {% if categoria == 'historico' %}selected{% endif %}>Histórico</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 col-6">
+                                    <label class="form-label fw-bold small text-uppercase text-secondary mb-1">Fecha entrada</label>
+                                    <input type="date" name="fecha_inicio" class="form-control form-control-sm border-0 bg-light" value="{{ fecha_inicio or '' }}">
+                                </div>
+                                <div class="col-md-2 col-6">
+                                    <label class="form-label fw-bold small text-uppercase text-secondary mb-1">Fecha salida</label>
+                                    <input type="date" name="fecha_fin" class="form-control form-control-sm border-0 bg-light" value="{{ fecha_fin or '' }}">
+                                </div>
+                                <div class="col-md-2 col-6">
+                                    <label class="form-label fw-bold small text-uppercase text-secondary mb-1">Personas</label>
+                                    <select name="personas" class="form-select form-select-sm border-0 bg-light">
+                                        <option value="1" {% if personas == '1' %}selected{% endif %}>1</option>
+                                        <option value="2" {% if personas == '2' %}selected{% endif %}>2</option>
+                                        <option value="3" {% if personas == '3' %}selected{% endif %}>3</option>
+                                        <option value="4" {% if personas == '4' %}selected{% endif %}>4</option>
+                                        <option value="5" {% if personas == '5' %}selected{% endif %}>5+</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 col-6">
+                                    <label class="form-label fw-bold small text-uppercase text-secondary mb-1">Tipo tour</label>
+                                    <select name="tipo_duracion" class="form-select form-select-sm border-0 bg-light">
+                                        <option value="">Todos</option>
+                                        <option value="por_dia" {% if tipo_duracion == 'por_dia' %}selected{% endif %}>Tour por día</option>
+                                        <option value="extendido" {% if tipo_duracion == 'extendido' %}selected{% endif %}>Tour extendido</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold" style="border-radius: 10px;">
+                                        <i class="fas fa-search me-2"></i> Buscar Tours
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container-fluid px-4 py-5">
+    <h2 class="text-center mb-4">Explora por categoría</h2>
+    <div class="row g-4 justify-content-center">
+        <a href="{{ url_for('main.buscar', categoria='montana') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-mountain fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Montaña</p>
+            </div>
+        </a>
+        <a href="{{ url_for('main.buscar', categoria='playa') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-umbrella-beach fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Playa</p>
+            </div>
+        </a>
+        <a href="{{ url_for('main.buscar', categoria='ecoturismo') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-tree fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Ecoturismo</p>
+            </div>
+        </a>
+        <a href="{{ url_for('main.buscar', categoria='islas') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-ship fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Islas</p>
+            </div>
+        </a>
+        <a href="{{ url_for('main.buscar', categoria='cultural') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-city fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Cultural</p>
+            </div>
+        </a>
+        <a href="{{ url_for('main.buscar', categoria='gastronomica') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-utensils fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Gastronómica</p>
+            </div>
+        </a>
+        <a href="{{ url_for('main.buscar', categoria='aventura') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-hiking fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Aventura</p>
+            </div>
+        </a>
+        <a href="{{ url_for('main.buscar', categoria='historico') }}" class="col-md-2 col-4 text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-4 h-100">
+                <i class="fas fa-landmark fs-1 text-success"></i>
+                <p class="fw-bold mt-2 mb-0">Histórico</p>
+            </div>
+        </a>
+    </div>
+</section>
+
+<section class="container-fluid px-4 py-5">
+    {% if fecha_inicio and fecha_fin and servicios|length == 0 %}
+    <div class="alert alert-warning text-center mb-4" role="alert">
+        <strong>No se encontraron tours para las fechas seleccionadas.</strong><br>
+        <small>Intenta ampliar el rango de fechas o cambiar la categoría. Los tours muestran los días en que están disponibles.</small>
+    </div>
+    {% endif %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Tours por día</h2>
+    </div>
+    <div class="row g-4">
+        {% for servicio in servicios %}
+        {% if not (servicio.duracion_unidad == 'dias' and servicio.duracion_cantidad and servicio.duracion_cantidad > 1) %}
+        <div class="col-md-3 col-sm-6">
+            <div class="card h-100 shadow-sm border-0">
+                {% if servicio.imagen %}
+                <img src="{{ servicio.imagen }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 220px; object-fit: cover;">
+                {% else %}
+                <img src="https://placehold.co/400x250/28a745/white?text={{ servicio.nombre|urlencode }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 220px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <a href="{{ url_for('main.tour_detalle', id=servicio.id) }}" class="text-decoration-none text-dark">
+                        <h5 class="card-title">{{ servicio.nombre }}</h5>
+                    </a>
+                    <p class="card-text text-muted small">{{ servicio.descripcion[:80] if servicio.descripcion else '' }}</p>
+                    {% if dias_info and servicio.id in dias_info and dias_info[servicio.id] %}
+                    <div class="mb-2">
+                        <small class="text-success fw-bold">Disponible:</small><br>
+                        {% for fecha_d in dias_info[servicio.id] %}
+                        <span class="badge bg-success bg-opacity-10 text-success me-1 mb-1" style="font-size: 0.7em;">{{ fecha_d.strftime('%d/%m') }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(servicio.precio) }}</span>
+                            <span class="badge bg-secondary ms-2">Tour por día</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('main.tour_detalle', id=servicio.id) }}" class="btn btn-success w-100 mt-2">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="col-12 text-center text-muted">
+            <p>No hay tours disponibles.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="container-fluid px-4 py-5 bg-light">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Tours extendidos</h2>
+    </div>
+    <div class="row g-4">
+        {% for servicio in servicios %}
+        {% if servicio.duracion_unidad == 'dias' and servicio.duracion_cantidad and servicio.duracion_cantidad > 1 %}
+        <div class="col-md-3 col-sm-6">
+            <div class="card h-100 shadow-sm border-0">
+                {% if servicio.imagen %}
+                <img src="{{ servicio.imagen }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 220px; object-fit: cover;">
+                {% else %}
+                <img src="https://placehold.co/400x250/28a745/white?text={{ servicio.nombre|urlencode }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 220px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <a href="{{ url_for('main.tour_detalle', id=servicio.id) }}" class="text-decoration-none text-dark">
+                        <h5 class="card-title">{{ servicio.nombre }}</h5>
+                    </a>
+                    <p class="card-text text-muted small">{{ servicio.descripcion[:80] if servicio.descripcion else '' }}</p>
+                    {% if dias_info and servicio.id in dias_info and dias_info[servicio.id] %}
+                    <div class="mb-2">
+                        <small class="text-success fw-bold">Disponible:</small><br>
+                        {% for fecha_d in dias_info[servicio.id] %}
+                        <span class="badge bg-success bg-opacity-10 text-success me-1 mb-1" style="font-size: 0.7em;">{{ fecha_d.strftime('%d/%m') }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(servicio.precio) }}</span>
+                            <span class="badge bg-info ms-2">Tour extendido</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('main.tour_detalle', id=servicio.id) }}" class="btn btn-success w-100 mt-2">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="col-12 text-center text-muted">
+            <p>No hay tours extendidos disponibles.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="container-fluid px-4 py-5 bg-light">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Ofertas Especiales</h2>
+        <a href="#" class="text-success fw-bold">Ver más ofertas →</a>
+    </div>
+    {% if ofertas %}
+    <div class="row g-4">
+        {% for servicio in ofertas %}
+        {% set promocion_info = servicio.get_precio_con_descuento() %}
+        <div class="col-md-3 col-sm-6">
+            <div class="card h-100 shadow-sm border-0">
+                {% if servicio.imagen %}
+                <img src="{{ servicio.imagen }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 220px; object-fit: cover;">
+                {% elif promocion_info.promocion and promocion_info.promocion.imagen %}
+                <img src="{{ promocion_info.promocion.imagen }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 220px; object-fit: cover;">
+                {% else %}
+                <img src="https://placehold.co/400x250/28a745/white?text={{ servicio.nombre|urlencode }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 220px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    {% if promocion_info.promocion %}
+                        <div class="badge bg-danger mb-2">
+                            {% if promocion_info.promocion.tipo == 'porcentaje' %}
+                                🔥 -{{ promocion_info.promocion.valor|int }}%
+                            {% else %}
+                                🔥 -${{ "%.2f"|format(promocion_info.promocion.valor) }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <a href="{{ url_for('main.tour_detalle', id=servicio.id) }}" class="text-decoration-none text-dark">
+                        <h5 class="card-title">{{ servicio.nombre }}</h5>
+                    </a>
+                    <p class="card-text text-muted small">{{ servicio.descripcion[:80] if servicio.descripcion else '' }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if promocion_info.promocion %}
+                                <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(promocion_info.precio_final) }}</span>
+                                <span class="text-muted text-decoration-line-through small ms-2">${{ "%.2f"|format(promocion_info.precio_original) }}</span>
+                                <br>
+                                <span class="badge bg-success small">{{ promocion_info.promocion.nombre }}</span>
+                            {% else %}
+                                <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(servicio.precio) }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{{ url_for('main.tour_detalle', id=servicio.id) }}" class="btn btn-success w-100 mt-2">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-4">
+        <p>No hay ofertas especiales disponibles en este momento.</p>
+    </div>
+    {% endif %}
+</section>
+
+<section class="container-fluid px-4 py-5">
+    <h2 class="text-center mb-4">Destinos populares</h2>
+    <div class="row g-4">
+        {% if destinos_populares %}
+            {% for destino, cantidad in destinos_populares %}
+            <div class="col-md-3 col-sm-6">
+                <a href="{{ url_for('main.buscar', destino=destino) }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm">
+                        <img src="https://placehold.co/300x200/28a745/white?text={{ destino|replace(' ', '+') }}" class="card-img-top" alt="{{ destino }}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body text-center">
+                            <p class="fw-bold mb-0">{{ destino }}</p>
+                            <small class="text-muted">{{ cantidad }} tour{{ 's' if cantidad != 1 else '' }} disponible{{ 's' if cantidad != 1 else '' }}</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center text-muted">
+                <p>No hay destinos disponibles en este momento.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="container-fluid px-4 py-5 bg-success text-white">
+    <div class="row text-center">
+        <div class="col-md-3 col-6 mb-3">
+            <i class="fas fa-shield-alt fs-1 mb-2"></i>
+            <h6>Pagos Seguros</h6>
+            <small class="text-white-50">Protegemos tus datos</small>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <i class="fas fa-headset fs-1 mb-2"></i>
+            <h6>Atención 24/7</h6>
+            <small class="text-white-50">Soporte en todo momento</small>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <i class="fas fa-thumbs-up fs-1 mb-2"></i>
+            <h6>Confianza</h6>
+            <small class="text-white-50">+500 viajeros felices</small>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <i class="fas fa-undo fs-1 mb-2"></i>
+            <h6>Cancelación Gratis</h6>
+            <small class="text-white-50">Hasta 24h antes</small>
+        </div>
+    </div>
+</section>
+
+<script>
+const categoriasPorDestino = {
+    '': ['Todas', 'Playa', 'Montaña', 'Ecoturismo', 'Aventura', 'Cultural', 'Gastronómica', 'Islas', 'Histórico'],
+    'Bocas del Toro': ['Todas', 'Snorkel', 'Buceo', 'Paseos en barco'],
+    'Chiriquí': ['Todas', 'Aventura', 'Ecoturismo', 'Montaña'],
+    'Coclé': ['Todas', 'Playa', 'Ecoturismo', 'Aventura'],
+    'Colón': ['Todas', 'Histórico', 'Cultural'],
+    'Darién': ['Todas', 'Ecoturismo', 'Aventura'],
+    'Herrera': ['Todas', 'Cultural', 'Gastronómica'],
+    'Los Santos': ['Todas', 'Playa', 'Cultural', 'Gastronómica'],
+    'Panamá': ['Todas', 'City Tour', 'Cultural', 'Gastronómica', 'Histórico'],
+    'Panamá Oeste': ['Todas', 'Playa', 'Ecoturismo', 'Aventura'],
+    'Veraguas': ['Todas', 'Playa', 'Montaña', 'Ecoturismo']
+};
+
+const mapCategoriaValor = {
+    '': '',
+    'Todas': '',
+    'Playa': 'playa',
+    'Montaña': 'montana',
+    'Ecoturismo': 'ecoturismo',
+    'Aventura': 'aventura',
+    'Cultural': 'cultural',
+    'Gastronómica': 'gastronomica',
+    'Islas': 'islas',
+    'Histórico': 'historico',
+    'Snorkel': 'playa',
+    'Buceo': 'playa',
+    'Paseos en barco': 'playa',
+    'City Tour': 'cultural'
+};
+
+// Invertir mapa: categoría → destinos
+const destinosPorCategoria = {};
+for (const [destino, cats] of Object.entries(categoriasPorDestino)) {
+    for (const cat of cats) {
+        const valor = mapCategoriaValor[cat] || cat;
+        if (!destinosPorCategoria[valor]) destinosPorCategoria[valor] = [];
+        if (!destinosPorCategoria[valor].includes(destino)) {
+            destinosPorCategoria[valor].push(destino);
+        }
+    }
+}
+
+// Todos los destinos en orden
+const todosDestinos = Object.keys(categoriasPorDestino).filter(d => d !== '');
+
+function actualizarCategorias() {
+    const destino = document.getElementById('destinoSelect').value;
+    const catSelect = document.getElementById('categoriaSelect');
+    const categorias = categoriasPorDestino[destino] || categoriasPorDestino[''];
+    const seleccionActual = catSelect.value;
+
+    catSelect.innerHTML = categorias.map(cat =>
+        `<option value="${mapCategoriaValor[cat] || cat}" ${(mapCategoriaValor[cat] || cat) === seleccionActual ? 'selected' : ''}>${cat}</option>`
+    ).join('');
+}
+
+function actualizarDestinos() {
+    const catSelect = document.getElementById('categoriaSelect');
+    const destSelect = document.getElementById('destinoSelect');
+    const catVal = catSelect.value;
+    const seleccionActual = destSelect.value;
+
+    if (!catVal) {
+        // Mostrar todos los destinos
+        destSelect.innerHTML = '<option value="">Todos los destinos</option>' +
+            todosDestinos.map(d =>
+                `<option value="${d}" ${d === seleccionActual ? 'selected' : ''}>${d}</option>`
+            ).join('');
+    } else {
+        const destinos = destinosPorCategoria[catVal] || [];
+        destSelect.innerHTML = '<option value="">Todos los destinos</option>' +
+            destinos.filter(d => d !== '').map(d =>
+                `<option value="${d}" ${d === seleccionActual ? 'selected' : ''}>${d}</option>`
+            ).join('');
+    }
+}
+
+document.getElementById('destinoSelect').addEventListener('change', actualizarCategorias);
+document.getElementById('categoriaSelect').addEventListener('change', actualizarDestinos);
+
+window.addEventListener('DOMContentLoaded', function() {
+    const destinoSel = document.getElementById('destinoSelect');
+    if (destinoSel.value) actualizarCategorias();
+});
+</script>
+<style>
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #0d5c2e;
+        box-shadow: 0 0 0 0.25rem rgba(13, 92, 46, 0.15);
+    }
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 60px 0 80px !important;
+        }
+        .hero-section h1 {
+            font-size: 2.2rem !important;
+        }
+        .card-body {
+            padding: 1.5rem !important;
+        }
+    }
+</style>
+{% endblock %}

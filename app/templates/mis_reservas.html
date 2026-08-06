@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Reservas{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-ticket-alt text-success"></i> Mis Reservas</h2>
+        <a href="{{ url_for('main.index') }}" class="btn btn-success">
+            <i class="fas fa-search"></i> Explorar tours
+        </a>
+    </div>
+
+    {% if reservas %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tipo</th>
+                        <th>Tour / Destino</th>
+                        <th>Fecha</th>
+                        <th>Personas</th>
+                        <th>Total</th>
+                        <th>Transacción</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas %}
+                    <tr>
+                        <td>{{ reserva.id }}</td>
+                        <td>
+                            {% if reserva.tipo == 'solicitud' %}
+                                <span class="badge bg-info">Solicitud</span>
+                            {% else %}
+                                <span class="badge bg-success">Reserva</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if reserva.servicio %}
+                                {{ reserva.servicio.nombre }}
+                            {% elif reserva.destino_preferido %}
+                                {{ reserva.destino_preferido }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ reserva.fecha_gira.strftime('%d/%m/%Y') if reserva.fecha_gira else '—' }}</td>
+                        <td>{{ reserva.numero_personas }}</td>
+                        <td>
+                            {% if reserva.tipo == 'solicitud' and reserva.cotizacion %}
+                                B/.{{ "%.2f"|format(reserva.cotizacion) }}
+                            {% else %}
+                                B/.{{ "%.2f"|format(reserva.total_pago) }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if reserva.codigo_transaccion %}
+                                <small class="text-muted">{{ reserva.codigo_transaccion }}</small>
+                                {% if reserva.tipo_tarjeta %}
+                                <br><small class="text-muted">{{ reserva.tipo_tarjeta|capitalize }} **{{ reserva.ultimos_digitos }}</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if reserva.estado == 'pendiente' %}bg-warning text-dark
+                                {% elif reserva.estado == 'confirmada' or reserva.estado == 'aprobada' %}bg-success
+                                {% elif reserva.estado == 'cotizada' %}bg-info
+                                {% elif reserva.estado == 'cancelada' or reserva.estado == 'rechazada' %}bg-danger
+                                {% elif reserva.estado == 'completada' or reserva.estado == 'en_proceso' %}bg-primary
+                                {% else %}bg-secondary{% endif %}">
+                                {{ reserva.estado|replace('_', ' ')|capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                            {% if reserva.tipo == 'solicitud' %}
+                                <a href="{{ url_for('solicitudes.detalle_solicitud', id=reserva.id) }}" class="btn btn-sm btn-outline-success" title="Ver itinerario">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            {% else %}
+                                {% if reserva.codigo_transaccion %}
+                                <form action="{{ url_for('reservas.detalle_pago') }}" method="POST" style="display:inline">
+                                    <input type="hidden" name="reserva_id" value="{{ reserva.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Ver recibo">
+                                        <i class="fas fa-receipt"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if reserva.estado == 'pendiente' %}
+                                <form action="{{ url_for('reservas.cancelar', id=reserva.id) }}" method="POST" style="display:inline" onsubmit="return confirm('¿Cancelar reserva?')">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Cancelar">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-plus display-1 text-muted"></i>
+            <h3 class="mt-3">No tienes reservas</h3>
+            <p class="text-muted">Explora nuestros tours y haz tu primera reserva</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-success mt-3">
+                <i class="fas fa-search"></i> Ver tours disponibles
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

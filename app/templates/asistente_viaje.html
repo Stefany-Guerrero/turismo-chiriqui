@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Planifica tu viaje{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4 fw-bold text-success">Planifica tu viaje</h1>
+            <p class="lead">Cuéntanos cómo quieres vivir tu experiencia y te mostraremos los mejores tours</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4 p-lg-5">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-car fs-1 text-success mb-2"></i>
+                                        <h5 class="card-title">¿Cómo deseas viajar?</h5>
+                                        {{ form.transporte(class="form-select form-select-lg") }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-compass fs-1 text-success mb-2"></i>
+                                        <h5 class="card-title">¿Qué experiencia buscas?</h5>
+                                        {{ form.experiencia(class="form-select form-select-lg") }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-clock fs-1 text-success mb-2"></i>
+                                        <h5 class="card-title">¿Cuántos días tienes?</h5>
+                                        {{ form.duracion(class="form-select form-select-lg") }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-wallet fs-1 text-success mb-2"></i>
+                                        <h5 class="card-title">¿Cuál es tu presupuesto?</h5>
+                                        {{ form.presupuesto(class="form-select form-select-lg") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            {{ form.submit(class="btn btn-success btn-lg fw-bold py-3") }}
+                        </div>
+                    </form>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="text-muted">
+                            <i class="fas fa-pencil-alt text-warning"></i>
+                            ¿Prefieres una experiencia personalizada? 
+                            <a href="{{ url_for('solicitudes.crear') }}" class="text-success fw-bold">
+                                Solicita un viaje a tu medida
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if resultados is not none %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="mb-4">Experiencias encontradas ({{ resultados|length }})</h2>
+                {% if not es_exacto and resultados %}
+                <div class="alert alert-warning py-3 mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No encontramos tours que coincidan exactamente con todos tus criterios.
+                    Aquí tienes las mejores opciones disponibles según tus preferencias.
+                </div>
+                {% endif %}
+            </div>
+            {% if resultados %}
+                {% for servicio, score in resultados %}
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        {% if servicio.imagen %}
+                        <img src="{{ servicio.imagen }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <img src="https://placehold.co/400x250/28a745/white?text={{ servicio.nombre|urlencode }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <span class="badge bg-success mb-2">{{ servicio.categoria_nombre }}</span>
+                            <h5 class="card-title">{{ servicio.nombre }}</h5>
+                            <p class="card-text text-muted small">{{ servicio.descripcion[:60] if servicio.descripcion else '' }}</p>
+                            {% set transportes = servicio.get_transportes_list() %}
+                            {% set transporte_precios = servicio.get_transporte_precios() %}
+                            {% if transportes %}
+                            <div class="mb-2">
+                                <small class="text-muted fw-semibold"><i class="fas fa-truck me-1"></i>Transporte:</small>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    {% for t in transportes %}
+                                    {% set t_label = {'vehiculo_propio': 'Vehículo propio', 'autobus': 'Autobús', 'transporte_empresa': 'Transporte empresa', 'avion': 'Avión', 'lancha': 'Lancha'}.get(t, t) %}
+                                    {% set t_precio = transporte_precios.get(t, 0) %}
+                                    <span class="badge border {% if t_precio > 0 %}border-info text-info{% else %}border-success text-success{% endif %} bg-transparent px-2 py-1" style="font-weight: 500;">
+                                        {{ t_label }}
+                                        {% if t_precio > 0 %}
+                                        <span class="ms-1">+${{ "%.2f"|format(t_precio) }}</span>
+                                        {% endif %}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if servicio.promocion_activa %}
+                                        <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(servicio.get_precio_con_descuento().precio_final) }}</span>
+                                        <span class="text-muted text-decoration-line-through small ms-2">${{ "%.2f"|format(servicio.precio) }}</span>
+                                        <br>
+                                        <span class="badge bg-success small">{{ servicio.promocion_activa.nombre }}</span>
+                                    {% else %}
+                                        <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(servicio.precio) }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ url_for('main.tour_detalle', id=servicio.id) }}" class="btn btn-sm btn-outline-success">Ver más</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center py-5">
+                        <i class="fas fa-search fa-3x mb-3"></i>
+                        <h4>No encontramos experiencias con esos filtros</h4>
+                        <p class="mb-0">Prueba cambiar tus preferencias para descubrir más opciones</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .form-select-lg {
+        font-size: 1.1rem;
+        padding: 12px 16px;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+        transition: transform 0.3s ease;
+    }
+</style>
+{% endblock %}

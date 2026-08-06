@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Detalle Transacción {{ reserva.codigo_transaccion }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between">
+                    <h4 class="mb-0">Transacción {{ reserva.codigo_transaccion }}</h4>
+                    {% if reserva.estado == 'confirmada' %}
+                        <span class="badge bg-light text-success fs-6">Pagada</span>
+                    {% elif reserva.estado == 'pendiente_pago' %}
+                        <span class="badge bg-warning fs-6">Pendiente</span>
+                    {% else %}
+                        <span class="badge bg-danger fs-6">{{ reserva.estado }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Cliente</h6>
+                            <p><strong>{{ reserva.cliente.nombre }}</strong><br>
+                            {{ reserva.cliente.email }}<br>
+                            {{ reserva.cliente.telefono or 'Sin teléfono' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Tour</h6>
+                            <p><strong>{{ reserva.servicio.nombre }}</strong><br>
+                            {{ reserva.servicio.destino or '' }}<br>
+                            Fecha: {{ reserva.fecha_gira.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Método de Pago</h6>
+                            <p>
+                                {% if reserva.metodo_pago == 'yappy' %}
+                                    <span class="badge bg-info fs-6">Yappy</span>
+                                {% elif reserva.metodo_pago == 'tarjeta' %}
+                                    <span class="badge bg-primary fs-6">Tarjeta</span>
+                                    {% if reserva.ultimos_digitos %}
+                                        <small class="d-block mt-1">**** {{ reserva.ultimos_digitos }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary fs-6">{{ reserva.metodo_pago or 'No definido' }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Monto</h6>
+                            <p class="fs-4 fw-bold text-success">B/.{{ "%.2f"|format(reserva.total_pago or 0) }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Fecha de Creación</h6>
+                            <p>{{ reserva.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                        </div>
+                    </div>
+
+                    {% if datos %}
+                    <hr>
+                    <h6 class="text-muted">Datos de la Transacción (JSON)</h6>
+                    <pre class="bg-light p-3 rounded"><code>{{ datos }}</code></pre>
+                    {% endif %}
+
+                    {% if reserva.comprobante_pago %}
+                    <hr>
+                    <h6 class="text-muted">Comprobante de Pago</h6>
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='comprobantes/' + reserva.comprobante_pago.split('/')[-1]) }}" 
+                             class="img-fluid rounded border" style="max-height: 400px;" 
+                             alt="Comprobante de pago">
+                    </div>
+                    {% endif %}
+
+                    {% if reserva.observaciones %}
+                    <hr>
+                    <h6 class="text-muted">Observaciones</h6>
+                    <p>{{ reserva.observaciones }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><strong>ID Reserva:</strong> #{{ reserva.id }}</li>
+                        <li class="mb-2"><strong>Personas:</strong> {{ reserva.numero_personas }}</li>
+                        <li class="mb-2"><strong>Subtotal:</strong> B/.{{ "%.2f"|format(reserva.subtotal or 0) }}</li>
+                        <li class="mb-2"><strong>ITBMS:</strong> B/.{{ "%.2f"|format(reserva.itbms or 0) }}</li>
+                        <li class="mb-2"><strong>Total:</strong> B/.{{ "%.2f"|format(reserva.total_pago or 0) }}</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="{{ url_for('transacciones.index') }}" class="btn btn-secondary w-100 mt-3">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Transacciones
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

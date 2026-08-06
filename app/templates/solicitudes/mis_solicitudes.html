@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Mis solicitudes{% endblock %}
+
+{% block page_title %}Mis solicitudes{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Mis solicitudes de viaje personalizado</h2>
+            
+            {% if solicitudes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Duración</th>
+                                <th>Personas</th>
+                                <th>Destino</th>
+                                <th>Transporte</th>
+                                <th>Presupuesto</th>
+                                <th>Cotización</th>
+                                <th>Estado</th>
+                                <th>Enviada</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for solicitud in solicitudes %}
+                            <tr style="cursor: pointer;" onclick="window.location='{{ url_for('solicitudes.detalle_solicitud', id=solicitud.id) }}'">
+                                <td>{{ solicitud.id }}</td>
+                                <td>{{ solicitud.duracion_texto() }}</td>
+                                <td>{{ solicitud.numero_personas }}</td>
+                                <td>{{ solicitud.destino_preferido or 'No especificado' }}</td>
+                                <td>{{ solicitud.transporte_nombre() }}</td>
+                                <td>
+                                    {% if solicitud.presupuesto_estimado %}
+                                        B/.{{ "%.2f"|format(solicitud.presupuesto_estimado) }}
+                                        {% if solicitud.presupuesto_tipo %}
+                                            <small class="text-muted">({{ solicitud.presupuesto_tipo|replace('_', ' ') }})</small>
+                                        {% endif %}
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td>
+                                    {% if solicitud.cotizacion and solicitud.cotizacion_visible() %}
+                                        <span class="fw-bold text-success">B/.{{ "%.2f"|format(solicitud.cotizacion) }}</span>
+                                    {% elif solicitud.estado == 'pendiente' %}
+                                        <span class="text-muted">Esperando...</span>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if solicitud.estado == 'pendiente' %}bg-warning text-dark
+                                        {% elif solicitud.estado == 'en_proceso' %}bg-info text-dark
+                                        {% elif solicitud.estado == 'cotizada' %}bg-primary
+                                        {% elif solicitud.estado == 'aprobada' %}bg-success
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ solicitud.estado|replace('_', ' ')|capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ solicitud.fecha_creacion|local_datetime('%d/%m/%Y') }}</td>
+                                <td onclick="event.stopPropagation()">
+                                    {% if solicitud.estado == 'cotizada' and solicitud.cotizacion %}
+                                    <a href="{{ url_for('solicitudes.pagar_solicitud', id=solicitud.id) }}" class="btn btn-success btn-sm fw-bold">
+                                        <i class="fas fa-credit-card"></i> Pagar
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% for solicitud in solicitudes %}
+                    {% if solicitud.cotizacion and solicitud.cotizacion_visible() %}
+                    <div class="modal fade" id="cotizacionModal{{ solicitud.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title"><i class="fas fa-file-invoice"></i> Cotización #{{ solicitud.id }}</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body text-center py-4">
+                                    <i class="fas fa-calculator fa-4x text-success mb-3"></i>
+                                    <h4>Tu cotización está lista</h4>
+                                    <p class="fs-1 fw-bold text-success">B/.{{ "%.2f"|format(solicitud.cotizacion) }}</p>
+                                    <p class="text-muted">Para {{ solicitud.numero_personas }} persona(s) | {{ solicitud.duracion_texto() }}</p>
+                                    <hr>
+                                    <p>{{ solicitud.observaciones or 'Cotización generada para tu viaje personalizado.' }}</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button class="btn btn-success" onclick="window.print()">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info text-center py-4">
+                    <i class="fas fa-pencil-alt fa-3x mb-3"></i>
+                    <h4>No has solicitado ningún viaje personalizado</h4>
+                    <p>Si no encuentras un tour que se ajuste a tus necesidades, puedes solicitar uno personalizado.</p>
+                    <a href="{{ url_for('planificador.index') }}" class="btn btn-warning">
+                        <i class="fas fa-compass"></i> Planificar mi viaje
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

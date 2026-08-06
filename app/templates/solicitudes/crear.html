@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar viaje personalizado{% endblock %}
+
+{% block page_title %}Solicitar viaje personalizado{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h3 class="mb-0"><i class="fas fa-pencil-alt"></i> Solicitar viaje personalizado</h3>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted">Cuéntanos qué te gustaría hacer y te ayudaremos a planificar la experiencia perfecta.</p>
+                    
+                    {% if viaje %}
+                    <div class="alert alert-info">
+                        <p class="mb-0"><strong>Basado en tu viaje planificado:</strong></p>
+                        <p class="mb-0 small">{{ viaje.fecha_inicio.strftime('%d/%m/%Y') }} - {{ viaje.fecha_fin.strftime('%d/%m/%Y') }} | {{ viaje.numero_personas }} personas</p>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-calendar"></i> Fechas y duración</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.fecha_inicio.label(class="form-label fw-bold") }}
+                                    {{ form.fecha_inicio(class="form-control", type="date", min=today) }}
+                                    {% for error in form.fecha_inicio.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.fecha_fin.label(class="form-label fw-bold") }}
+                                    {{ form.fecha_fin(class="form-control", type="date") }}
+                                    {% for error in form.fecha_fin.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-map-marked-alt"></i> Ubicación</h5>
+                        <div class="mb-3">
+                            {{ form.destino_preferido.label(class="form-label fw-bold") }}
+                            {{ form.destino_preferido(class="form-control", placeholder="Ej: Boquete, Isla Coiba, Volcán Barú...") }}
+                            {% for error in form.destino_preferido.errors %}
+                                <span class="text-danger small">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.lugar_recogida.label(class="form-label fw-bold") }}
+                                    {{ form.lugar_recogida(class="form-control") }}
+                                    {% for error in form.lugar_recogida.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.lugares_visitar.label(class="form-label fw-bold") }}
+                                    {{ form.lugares_visitar(class="form-control", rows=2) }}
+                                    {% for error in form.lugares_visitar.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-users"></i> Personas y presupuesto</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.numero_personas.label(class="form-label fw-bold") }}
+                                    {{ form.numero_personas(class="form-control", min="1", max="50") }}
+                                    {% for error in form.numero_personas.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.presupuesto_estimado.label(class="form-label fw-bold") }}
+                                    {{ form.presupuesto_estimado(class="form-control", step="0.01", min="0", max="100000") }}
+                                    {% for error in form.presupuesto_estimado.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.presupuesto_tipo.label(class="form-label fw-bold") }}
+                                    {{ form.presupuesto_tipo(class="form-select") }}
+                                    {% for error in form.presupuesto_tipo.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-hotel"></i> Alojamiento</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.tipo_alojamiento.label(class="form-label fw-bold") }}
+                                    {{ form.tipo_alojamiento(class="form-select") }}
+                                    {% for error in form.tipo_alojamiento.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-truck"></i> Transporte</h5>
+                        <div class="mb-3">
+                            {{ form.transporte.label(class="form-label fw-bold") }}
+                            {{ form.transporte(class="form-select") }}
+                            {% for error in form.transporte.errors %}
+                                <span class="text-danger small">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-utensils"></i> Alimentación</h5>
+                        <div class="mb-3">
+                            {{ form.alimentacion.label(class="form-label fw-bold") }}
+                            {{ form.alimentacion(class="form-select") }}
+                            {% for error in form.alimentacion.errors %}
+                                <span class="text-danger small">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-concierge-bell"></i> Servicios adicionales</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.hospedaje(class="form-check-input") }}
+                                    {{ form.hospedaje.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.guia(class="form-check-input") }}
+                                    {{ form.guia.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-address-card"></i> Datos de contacto</h5>
+                        <p class="text-muted small">Te contactaremos al correo <strong>{{ current_user.email }}</strong>.</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.telefono.label(class="form-label fw-bold") }}
+                                    {{ form.telefono(class="form-control", placeholder="+507 6000-0000") }}
+                                    <small class="text-muted">Opcional, por si necesitamos llamarte.</small>
+                                    {% for error in form.telefono.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-comment"></i> Observaciones</h5>
+                        <div class="mb-3">
+                            {{ form.observaciones(class="form-control", rows=3) }}
+                            {% for error in form.observaciones.errors %}
+                                <span class="text-danger small">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            {{ form.submit(class="btn btn-warning btn-lg fw-bold") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

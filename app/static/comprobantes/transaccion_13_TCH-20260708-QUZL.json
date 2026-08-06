@@ -1,0 +1,15 @@
+{
+  "id_reserva": 13,
+  "codigo_transaccion": "TCH-20260708-QUZL",
+  "monto": 192.6,
+  "moneda": "USD",
+  "metodo_pago": "Yappy",
+  "telefono_contacto": "7890-7890",
+  "fecha_pago": "2026-07-08 22:06:12",
+  "nombre_cliente": "Administrador",
+  "email_cliente": "admin@turismo.com",
+  "tour": "Aventura en el Valle de Antón",
+  "fecha_gira": "2026-07-11",
+  "numero_personas": 1,
+  "comprobante": "comprobante_13_TCH-20260708-QUZL.png"
+}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Recomendaciones para tu viaje{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-3">Recomendaciones para tu viaje</h2>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small class="text-muted">Fechas</small>
+                            <p>{{ viaje.fecha_inicio.strftime('%d/%m/%Y') }} - {{ viaje.fecha_fin.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Personas</small>
+                            <p>{{ viaje.numero_personas }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Días</small>
+                            <p>{{ viaje.get_dias_totales() }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Estado</small>
+                            <p><span class="badge bg-info">{{ viaje.estado }}</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="mb-3">Tours recomendados ({{ recomendaciones|length }})</h3>
+            
+            {% if recomendaciones %}
+                <div class="row">
+                    {% for rec in recomendaciones %}
+                    <div class="col-md-4 col-lg-3 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-success">{{ rec.servicio.categoria_nombre }}</span>
+                                    <span class="badge bg-primary">Score: {{ rec.score }}</span>
+                                </div>
+                                <h5 class="card-title mt-2">{{ rec.servicio.nombre }}</h5>
+                                <p class="card-text text-muted small">{{ rec.servicio.descripcion[:60] if rec.servicio.descripcion else '' }}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(rec.servicio.precio) }}</span>
+                                    <a href="{{ url_for('main.tour_detalle', id=rec.servicio.id) }}" class="btn btn-sm btn-outline-success">Ver más</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p>No hay recomendaciones para este viaje.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Promociones{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Promociones</h1>
+        <a href="{{ url_for('promociones.crear') }}" class="btn btn-primary">Nueva Promoción</a>
+    </div>
+
+    {% set hay_vigentes = promociones|selectattr('esta_vigente')|list %}
+    {% if hay_vigentes %}
+    <div class="row mb-4">
+        {% for p in promociones %}
+        {% if p.esta_vigente() %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-success">
+                {% if p.imagen %}
+                <img src="{{ p.imagen }}" class="card-img-top" alt="{{ p.nombre }}" style="height:180px;object-fit:cover;">
+                {% else %}
+                <div class="bg-success text-white d-flex align-items-center justify-content-center" style="height:180px;">
+                    <i class="fas fa-tag fa-4x"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title">{{ p.nombre }}</h5>
+                        {% if p.tipo == 'porcentaje' %}
+                        <span class="badge bg-danger fs-6">{{ p.valor }}% OFF</span>
+                        {% else %}
+                        <span class="badge bg-danger fs-6">B/.{{ "%.2f"|format(p.valor) }} OFF</span>
+                        {% endif %}
+                    </div>
+                    <p class="card-text text-muted small">{{ p.descripcion[:120] }}{% if p.descripcion and p.descripcion|length > 120 %}...{% endif %}</p>
+                    {% if p.servicio %}
+                    <p class="mb-1"><strong>Tour:</strong> <a href="{{ url_for('main.tour_detalle', id=p.servicio.id) }}">{{ p.servicio.nombre }}</a></p>
+                    <p class="mb-1"><strong>Precio original:</strong> B/.{{ "%.2f"|format(p.servicio.precio) }}</p>
+                    <p class="mb-0">
+                        <strong>Precio final:</strong>
+                        <span class="text-success fw-bold">
+                            B/.{{ "%.2f"|format(p.servicio.get_precio_con_descuento().precio_final) }}
+                        </span>
+                    </p>
+                    {% endif %}
+                    <p class="mt-2 mb-0 small text-muted">
+                        <i class="fas fa-calendar"></i> {{ p.fecha_inicio.strftime('%d/%m/%Y') }} - {{ p.fecha_fin.strftime('%d/%m/%Y') }}
+                        {% if p.uso_maximo > 0 %}
+                        | <i class="fas fa-users"></i> {{ p.usos_actuales }}/{{ p.uso_maximo }} usos
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-between">
+                    <small class="text-muted">Código: <strong>{{ p.codigo }}</strong></small>
+                    <div>
+                        <a href="{{ url_for('promociones.editar', id=p.id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                        <form action="{{ url_for('promociones.cambiar_estado', id=p.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-secondary btn-sm" title="Desactivar"><i class="fas fa-pause"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Todas las promociones</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Tour</th>
+                            <th>Vigencia</th>
+                            <th>Usos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in promociones %}
+                        <tr class="{% if p.esta_vigente() %}table-success{% endif %}">
+                            <td>{{ p.id }}</td>
+                            <td><strong>{{ p.codigo }}</strong></td>
+                            <td>{{ p.nombre }}</td>
+                            <td>{% if p.tipo == 'porcentaje' %}<span class="badge bg-info">%</span>{% else %}<span class="badge bg-primary">$</span>{% endif %}</td>
+                            <td>{% if p.tipo == 'porcentaje' %}{{ p.valor }}%{% else %}B/. {{ "%.2f"|format(p.valor) }}{% endif %}</td>
+                            <td>{% if p.servicio %}<a href="{{ url_for('main.tour_detalle', id=p.servicio.id) }}" class="text-decoration-none">{{ p.servicio.nombre }}</a>{% else %}<span class="text-muted">Todas</span>{% endif %}</td>
+                            <td>
+                                {{ p.fecha_inicio.strftime('%d/%m/%Y') }} - {{ p.fecha_fin.strftime('%d/%m/%Y') }}
+                                {% if p.esta_vigente() %}<span class="badge bg-success ms-1">Vigente</span>{% elif not p.activa %}<span class="badge bg-secondary ms-1">Inactiva</span>{% elif p.fecha_inicio > now.date() %}<span class="badge bg-warning text-dark ms-1">Pendiente</span>{% else %}<span class="badge bg-danger ms-1">Expirada</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if p.uso_maximo > 0 %}
+                                    {{ p.usos_actuales }}/{{ p.uso_maximo }}
+                                {% else %}
+                                    Ilimitado
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if p.activa %}
+                                    <span class="badge bg-success">Activa</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('promociones.editar', id=p.id) }}" class="btn btn-warning btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('promociones.cambiar_estado', id=p.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-info btn-sm" title="{% if p.activa %}Desactivar{% else %}Activar{% endif %}">
+                                        <i class="fas {% if p.activa %}fa-pause{% else %}fa-play{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('promociones.eliminar', id=p.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar promoción {{ p.codigo }}?');">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">No hay promociones registradas</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

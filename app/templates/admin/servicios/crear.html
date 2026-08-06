@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Tour{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Crear Nuevo Tour</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <h5 class="mt-2">1. Información General</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.codigo.label(class="form-label") }}
+                                    {{ form.codigo(class="form-control", readonly=True, id="codigo") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.nombre.label(class="form-label") }}
+                                    {{ form.nombre(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.tipo_experiencia.label(class="form-label") }}
+                                    {{ form.tipo_experiencia(class="form-select") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.activo(class="form-check-input") }}
+                                        {{ form.activo.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Activo = visible para los clientes | Inactivo = oculto</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">2. Destino</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Provincia</label>
+                                    <select name="provincia" class="form-select" id="provincia">
+                                        <option value="">Seleccione una provincia</option>
+                                        {% for value, label in form.provincia.choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Distrito</label>
+                                    <select name="distrito" class="form-select" id="distrito">
+                                        <option value="">Seleccione un distrito</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Destino</label>
+                                    <select name="destino" class="form-select" id="destino">
+                                        <option value="">Seleccione un destino</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.punto_salida.label(class="form-label") }}
+                                    {{ form.punto_salida(class="form-control", placeholder="Ej: David") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.punto_llegada.label(class="form-label") }}
+                                    {{ form.punto_llegada(class="form-control", placeholder="Ej: Parque Nacional") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">3. Información del Tour</h5>
+                        <hr>
+                        <div class="mb-3">
+                            {{ form.descripcion.label(class="form-label") }}
+                            {{ form.descripcion(class="form-control", rows=3) }}
+                            <small class="text-muted">Describe las actividades, lugares a visitar, servicios incluidos y cualquier información relevante del tour.</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.precio.label(class="form-label") }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">B/.</span>
+                                        {{ form.precio(class="form-control", step="0.01") }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Duración</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            {{ form.duracion_cantidad(class="form-control", id="duracion_cantidad") }}
+                                        </div>
+                                        <div class="col-6">
+                                            {{ form.duracion_unidad(class="form-control", id="duracion_unidad") }}
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Horas: 1-23 | Días: 1-15</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.hora_inicio.label(class="form-label") }}
+                                    {{ form.hora_inicio(class="form-control", placeholder="06:00") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.hora_estimada_regreso.label(class="form-label") }}
+                                    {{ form.hora_estimada_regreso(class="form-control", placeholder="14:00") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">4. Cupos</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.cupo_maximo.label(class="form-label") }}
+                                    {{ form.cupo_maximo(class="form-control", id="cupo_maximo") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">5. Servicios Incluidos</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                {{ form.incluye_transporte(class="form-check-input") }}
+                                {{ form.incluye_transporte.label(class="form-check-label") }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.incluye_alimentacion(class="form-check-input") }}
+                                {{ form.incluye_alimentacion.label(class="form-check-label") }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.incluye_hospedaje(class="form-check-input") }}
+                                {{ form.incluye_hospedaje.label(class="form-check-label") }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.incluye_guia(class="form-check-input") }}
+                                {{ form.incluye_guia.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                {{ form.incluye_seguro(class="form-check-input") }}
+                                {{ form.incluye_seguro.label(class="form-check-label") }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.incluye_entradas(class="form-check-input") }}
+                                {{ form.incluye_entradas.label(class="form-check-label") }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.incluye_equipo(class="form-check-input") }}
+                                {{ form.incluye_equipo.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 mt-3">
+                            {{ form.incluye.label(class="form-label") }}
+                            {{ form.incluye(class="form-control", rows=2, placeholder="Detalles adicionales de lo que incluye") }}
+                        </div>
+                        
+                        <h5 class="mt-4">6. Qué NO Incluye</h5>
+                        <hr>
+                        <div class="mb-3">
+                            {{ form.no_incluye.label(class="form-label") }}
+                            {{ form.no_incluye(class="form-control", rows=2, placeholder="Ej: No incluye bebidas alcohólicas") }}
+                        </div>
+                        
+                        <h5 class="mt-4">7. Recomendaciones</h5>
+                        <hr>
+                        <div class="mb-3">
+                            {{ form.recomendaciones.label(class="form-label") }}
+                            {{ form.recomendaciones(class="form-control", rows=2, placeholder="Ej: Llevar bloqueador, ropa cómoda") }}
+                        </div>
+                        
+                        <h5 class="mt-4">8. Itinerario</h5>
+                        <hr>
+                        <div class="mb-3">
+                            {{ form.itinerario.label(class="form-label") }}
+                            {{ form.itinerario(class="form-control", rows=4, placeholder="6:00 AM - Salida desde David") }}
+                        </div>
+                        
+                        <h5 class="mt-4">9. Imagen</h5>
+                        <hr>
+                        <div class="mb-3">
+                            {{ form.imagen.label(class="form-label") }}
+                            {{ form.imagen(class="form-control", placeholder="https://images.unsplash.com/photo-...") }}
+                            <small class="text-muted">Puedes usar URLs de imágenes o subirlas a la carpeta static/img/</small>
+                        </div>
+                        
+                        <h5 class="mt-4">10. Proveedor principal</h5>
+                        <hr>
+                        <div class="mb-3">
+                            {{ form.proveedor_id.label(class="form-label") }}
+                            {{ form.proveedor_id(class="form-control", id="proveedor_id", onchange="autoCupo()") }}
+                            <small class="text-muted">Proveedor principal del tour (legacy).</small>
+                        </div>
+                        
+                        <h5 class="mt-4">10b. Proveedores del tour (con rol)</h5>
+                        <hr>
+                        <div class="alert alert-info py-2 mb-3" style="font-size: 0.85rem;">
+                            <i class="fas fa-info-circle"></i> Selecciona qué proveedor cumple cada función en este tour. No es necesario asignar todos los roles.
+                        </div>
+                        <div id="proveedores-section">
+                            <div class="proveedor-row mb-3 d-flex align-items-start gap-2">
+                                <div>
+                                    <select name="tour_proveedor_id" class="form-control proveedor-select" style="max-width: 250px;" onchange="mostrarTipoProveedor(this)">
+                                        <option value="">Seleccionar proveedor...</option>
+                                        {% for p in proveedores_activos %}
+                                        <option value="{{ p.id }}" data-tipo="{{ p.tipo or 'Sin tipo' }}">{{ p.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="text-muted tipo-proveedor"></small>
+                                </div>
+                                <div>
+                                    <select name="tour_proveedor_rol" class="form-control" style="max-width: 200px;">
+                                        <option value="">Rol en el tour...</option>
+                                        {% for key, label in roles_proveedor.items() %}
+                                        <option value="{{ key }}" title="{{ roles_descripcion.get(key, '') }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="text-muted">Hover para ver descripción</small>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm mt-1" onclick="this.closest('.proveedor-row').remove()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="agregarProveedor()">
+                            <i class="fas fa-plus"></i> Agregar proveedor
+                        </button>
+                        
+                        <h5 class="mt-4">11. Asistente de Viaje</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.transporte.label(class="form-label") }}
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        {% for value, label in form.transporte.choices %}
+                                        {% set precio = transporte_precios.get(value, 0) %}
+                                        <div class="d-flex align-items-center gap-1">
+                                            <input type="checkbox" class="btn-check" name="{{ form.transporte.name }}" value="{{ value }}" id="transporte_{{ value }}" autocomplete="off"
+                                                {% if form.transporte.data and value in form.transporte.data %}checked{% endif %}>
+                                            <label class="btn btn-outline-success rounded-pill px-3" for="transporte_{{ value }}">{{ label }}</label>
+                                            <div class="input-group input-group-sm" style="width: 105px;">
+                                                <span class="input-group-text">B/.</span>
+                                                <input type="number" step="0.01" min="0" class="form-control form-control-sm" 
+                                                       name="transporte_precio_{{ value }}" 
+                                                       value="{{ request.form.get('transporte_precio_' + value, precio) }}"
+                                                       style="width: 65px;" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% for error in form.transporte.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.duracion_recomendada.label(class="form-label") }}
+                                    {{ form.duracion_recomendada(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4">12. Programación del Tour</h5>
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.tipo_programacion.label(class="form-label") }}
+                                    {{ form.tipo_programacion(class="form-control", id="tipo_programacion") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="fecha_unica_container">
+                                <div class="mb-3">
+                                    {{ form.fecha_unica.label(class="form-label") }}
+                                    {{ form.fecha_unica(class="form-control", type="date") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" id="recurrente_container">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.vigencia_inicio.label(class="form-label") }}
+                                    {{ form.vigencia_inicio(class="form-control", type="date") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.vigencia_fin.label(class="form-label") }}
+                                    {{ form.vigencia_fin(class="form-control", type="date") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Días de operación</label>
+                                    <div class="row">
+                                        {% for value, label in form.dias_operacion.choices %}
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       name="dias_operacion" value="{{ value }}"
+                                                       id="dia_{{ value }}">
+                                                <label class="form-check-label" for="dia_{{ value }}">
+                                                    {{ label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="{{ url_for('servicios.index') }}" class="btn btn-secondary">Cancelar</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const provinciaSelect = document.getElementById('provincia');
+    const distritoSelect = document.getElementById('distrito');
+    const destinoSelect = document.getElementById('destino');
+    const codigoInput = document.getElementById('codigo');
+
+    function generateCodigo() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let codigo = 'TOUR-';
+        for (let i = 0; i < 6; i++) {
+            codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        codigoInput.value = codigo;
+    }
+
+    generateCodigo();
+
+    const distritos = {{ distritos_json|safe }};
+    const destinos = {{ destinos_json|safe }};
+
+    const provinciaSeleccionada = "{{ provincia_seleccionada|default('') }}";
+    const distritoSeleccionado = "{{ distrito_seleccionado|default('') }}";
+    const destinoSeleccionado = "{{ destino_seleccionado|default('') }}";
+
+    function setSelectValue(selectElement, value) {
+        const options = selectElement.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === value) {
+                selectElement.selectedIndex = i;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function populateDistritos(provincia) {
+        distritoSelect.innerHTML = '<option value="">Seleccione un distrito</option>';
+        destinoSelect.innerHTML = '<option value="">Seleccione un destino</option>';
+        
+        if (provincia && distritos[provincia]) {
+            distritos[provincia].forEach(function(d) {
+                const option = document.createElement('option');
+                option.value = d;
+                option.textContent = d;
+                distritoSelect.appendChild(option);
+            });
+        }
+        
+        if (provincia && destinos[provincia]) {
+            destinos[provincia].forEach(function(d) {
+                const option = document.createElement('option');
+                option.value = d;
+                option.textContent = d;
+                destinoSelect.appendChild(option);
+            });
+        }
+    }
+
+    function updateDistritos() {
+        const provincia = provinciaSelect.value;
+        populateDistritos(provincia);
+        if (distritoSeleccionado) {
+            setSelectValue(distritoSelect, distritoSeleccionado);
+        }
+        if (destinoSeleccionado) {
+            setSelectValue(destinoSelect, destinoSeleccionado);
+        }
+    }
+
+    if (provinciaSeleccionada) {
+        provinciaSelect.value = provinciaSeleccionada;
+        updateDistritos();
+    } else {
+        populateDistritos('');
+    }
+
+    provinciaSelect.addEventListener('change', function() {
+        populateDistritos(provinciaSelect.value);
+    });
+
+    const cantidadInput = document.getElementById('duracion_cantidad');
+    const unidadSelect = document.getElementById('duracion_unidad');
+
+    function validarDuracion() {
+        const cantidad = parseInt(cantidadInput.value);
+        const unidad = unidadSelect.value;
+        let max = 23;
+        let min = 1;
+        let mensaje = '';
+        
+        if (unidad === 'dias') {
+            max = 15;
+            mensaje = 'Para días, la cantidad debe estar entre 1 y 15';
+        } else {
+            mensaje = 'Para horas, la cantidad debe estar entre 1 y 23';
+        }
+        
+        if (isNaN(cantidad) || cantidad < min || cantidad > max) {
+            cantidadInput.setCustomValidity(mensaje);
+        } else {
+            cantidadInput.setCustomValidity('');
+        }
+    }
+
+    cantidadInput.addEventListener('input', validarDuracion);
+    unidadSelect.addEventListener('change', validarDuracion);
+
+    const tipoProgramacion = document.getElementById('tipo_programacion');
+    const fechaUnicaContainer = document.getElementById('fecha_unica_container');
+    const recurrenteContainer = document.getElementById('recurrente_container');
+
+    function toggleProgramacion() {
+        if (tipoProgramacion.value === 'fecha_unica') {
+            fechaUnicaContainer.style.display = 'block';
+            recurrenteContainer.style.display = 'none';
+        } else {
+            fechaUnicaContainer.style.display = 'none';
+            recurrenteContainer.style.display = 'block';
+        }
+    }
+
+    tipoProgramacion.addEventListener('change', toggleProgramacion);
+    toggleProgramacion();
+});
+
+function autoCupo() {
+    const proveedorId = document.getElementById('proveedor_id').value;
+    const cupoMaximo = document.getElementById('cupo_maximo');
+    
+    if (!proveedorId || proveedorId == '0') return;
+    
+    fetch('/proveedores/capacidad/' + proveedorId)
+        .then(r => r.json())
+        .then(data => {
+            if (data.capacidad) {
+                cupoMaximo.value = data.capacidad;
+            }
+        })
+        .catch(err => console.log('Error al obtener capacidad:', err));
+}
+
+function agregarProveedor() {
+    const section = document.getElementById('proveedores-section');
+    const firstRow = section.querySelector('.proveedor-row');
+    const newRow = firstRow.cloneNode(true);
+    
+    newRow.querySelectorAll('select').forEach(sel => {
+        sel.selectedIndex = 0;
+    });
+    
+    const tipoSmall = newRow.querySelector('.tipo-proveedor');
+    if (tipoSmall) tipoSmall.textContent = '';
+    
+    section.appendChild(newRow);
+}
+
+function mostrarTipoProveedor(select) {
+    const tipoSmall = select.parentElement.querySelector('.tipo-proveedor');
+    const option = select.options[select.selectedIndex];
+    const tipo = option.getAttribute('data-tipo');
+    tipoSmall.textContent = tipo ? 'Tipo: ' + tipo : '';
+}
+</script>
+{% endblock %}

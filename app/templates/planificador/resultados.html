@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados de tu viaje{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <a href="{{ url_for('planificador.index') }}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="fas fa-arrow-left"></i> Volver al planificador
+    </a>
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-3">Resultados de tu viaje</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small class="text-muted">Fechas</small>
+                            <p class="fw-bold">{{ viaje.fecha_inicio.strftime('%d/%m/%Y') }} - {{ viaje.fecha_fin.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Personas</small>
+                            <p class="fw-bold">{{ viaje.numero_personas }}</p>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Dias</small>
+                            <p class="fw-bold">{{ viaje.get_dias_totales() }}</p>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Presupuesto</small>
+                            <p class="fw-bold">{% if viaje.presupuesto %}B/. {{ "%.2f"|format(viaje.presupuesto) }}{% else %}Sin especificar{% endif %}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Experiencia</small>
+                            <p class="fw-bold">{{ viaje.experiencia_buscada or 'Cualquier' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if mostrar_personalizado %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info text-center py-5">
+                <i class="fas fa-search fa-4x mb-3 text-muted"></i>
+                <h4 class="mb-3">No encontramos tours que coincidan con tus preferencias</h4>
+                <p class="mb-4">¿Quieres crear un viaje personalizado? Un asesor te ayudara a planificar la experiencia perfecta.</p>
+                <a href="{{ url_for('solicitudes.crear', viaje_id=viaje.id) }}" class="btn btn-success btn-lg px-5">
+                    <i class="fas fa-pencil-alt me-2"></i> Solicitar viaje personalizado
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3">Tours recomendados ({{ resultados|length }})</h3>
+        </div>
+        {% for tour, score in resultados %}
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                {% if tour.imagen %}
+                <img src="{{ tour.imagen }}" class="card-img-top" alt="{{ tour.nombre }}" style="height: 180px; object-fit: cover;">
+                {% else %}
+                <img src="https://placehold.co/400x250/28a745/white?text=Turismo" class="card-img-top" alt="{{ tour.nombre }}" style="height: 180px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span class="badge bg-success">{{ tour.categoria_nombre }}</span>
+                        <span class="badge bg-info">Score: {{ score }}</span>
+                    </div>
+                    <h5 class="card-title mt-2">{{ tour.nombre }}</h5>
+                    <p class="card-text text-muted small">{{ tour.descripcion[:60] if tour.descripcion else '' }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-5 text-success">${{ "%.2f"|format(tour.precio) }}</span>
+                        <a href="{{ url_for('main.tour_detalle', id=tour.id) }}" class="btn btn-sm btn-outline-success">Ver mas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Control - Turismo Chiriquí{% endblock %}
+
+{% block page_title %}Panel de Control{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 text-center p-3">
+            <div class="text-success mb-2" style="font-size: 1.6rem;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="fs-3 fw-bold" style="color: #0d5c2e;">{{ total_clientes }}</div>
+            <div class="small text-secondary">Clientes</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 text-center p-3">
+            <div class="text-success mb-2" style="font-size: 1.6rem;">
+                <i class="fas fa-umbrella-beach"></i>
+            </div>
+            <div class="fs-3 fw-bold" style="color: #0d5c2e;">{{ total_tours }}</div>
+            <div class="small text-secondary">Tours</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 text-center p-3">
+            <div class="text-success mb-2" style="font-size: 1.6rem;">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="fs-3 fw-bold" style="color: #0d5c2e;">{{ total_reservas }}</div>
+            <div class="small text-secondary">Reservas</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 text-center p-3">
+            <div class="text-success mb-2" style="font-size: 1.6rem;">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="fs-3 fw-bold" style="color: #0d5c2e;">B/.{{ "%.2f"|format(total_pagos|default(0)) }}</div>
+            <div class="small text-secondary">Pagos</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 text-center p-3">
+            <div class="text-warning mb-2" style="font-size: 1.6rem;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="fs-3 fw-bold" style="color: #856404;">{{ reservas_pendientes }}</div>
+            <div class="small text-secondary">Pendientes</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 text-center p-3">
+            <div class="text-info mb-2" style="font-size: 1.6rem;">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <div class="fs-3 fw-bold" style="color: #0d5c2e;">B/.{{ "%.2f"|format(total_pagos|default(0)) }}</div>
+            <div class="small text-secondary">Recaudado</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold" style="color: #0d5c2e;">
+            <i class="fas fa-clock me-2"></i> Últimas Reservas Confirmadas
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        {% if ultimas_reservas %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Tour</th>
+                        <th>Fecha</th>
+                        <th>Personas</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in ultimas_reservas %}
+                    <tr>
+                        <td class="fw-medium">#{{ reserva.id }}</td>
+                        <td>{{ reserva.cliente.usuario.nombre_completo if reserva.cliente else 'N/A' }}</td>
+                        <td>{{ reserva.servicio.nombre if reserva.servicio else 'N/A' }}</td>
+                        <td>{{ reserva.fecha_gira.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ reserva.numero_personas }}</td>
+                        <td class="fw-bold text-success">B/.{{ "%.2f"|format(reserva.total_pago) }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if reserva.estado == 'pendiente' %}bg-warning text-dark
+                                {% elif reserva.estado == 'confirmada' %}bg-success
+                                {% elif reserva.estado == 'cancelada' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ reserva.estado|capitalize }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted my-4">
+            <i class="fas fa-info-circle me-2"></i> No hay reservas recientes.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <a href="{{ url_for('servicios.crear') }}" class="btn btn-success w-100 py-3 d-block text-center text-decoration-none">
+            <i class="fas fa-plus-circle d-block mb-1" style="font-size: 1.8rem;"></i>
+            <span class="fw-bold">Nuevo Tour</span>
+            <br><small class="opacity-75">Agregar un nuevo tour</small>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{{ url_for('solicitudes.admin_solicitudes') }}" class="btn btn-warning w-100 py-3 d-block text-center text-decoration-none">
+            <i class="fas fa-clipboard-list d-block mb-1" style="font-size: 1.8rem;"></i>
+            <span class="fw-bold">Ver Solicitudes</span>
+            <br><small class="opacity-75">Gestionar solicitudes</small>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{{ url_for('reservas.index') }}" class="btn btn-info w-100 py-3 d-block text-center text-decoration-none">
+            <i class="fas fa-calendar-check d-block mb-1" style="font-size: 1.8rem;"></i>
+            <span class="fw-bold">Ver Reservas</span>
+            <br><small class="opacity-75">Gestionar reservas</small>
+        </a>
+    </div>
+</div>
+{% endblock %}

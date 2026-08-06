@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Itinerario #{{ solicitud.id }} - Turismo Chiriquí</title>
+  <style>
+    @page { margin: 8mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10px; line-height: 1.4; color: #222;
+      padding: 0; width: 100%;
+    }
+    .page { width: 100%; }
+
+    .header { text-align: center; margin-bottom: 4mm; }
+    .header img { height: 22px; margin-bottom: 2px; }
+    .header h1 { font-size: 14px; color: #1b5e20; margin: 0; letter-spacing: 1px; }
+    .header .code { font-size: 9px; color: #666; }
+    .header .code strong { color: #1b5e20; }
+
+    .banner {
+      background: #f0f7f0; border: 1px solid #c8e6c9; border-radius: 4px;
+      padding: 3mm 4mm; margin-bottom: 3mm; text-align: center;
+    }
+    .banner .badge {
+      display: inline-block; background: #1b5e20; color: #fff;
+      padding: 1px 10px; border-radius: 10px; font-size: 8px;
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+    }
+    .banner .tit { font-size: 12px; font-weight: 700; color: #1b5e20; margin: 1mm 0; }
+
+    table.grid { width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
+    table.grid td { width: 50%; vertical-align: top; padding: 1mm 2mm 1mm 0; }
+    table.grid .lbl { font-size: 7px; text-transform: uppercase; letter-spacing: 1px; color: #999; }
+    table.grid .val { font-weight: 600; font-size: 10px; }
+
+    .trip-card {
+      border: 1px solid #c8e6c9; border-radius: 4px;
+      padding: 2mm 3mm; margin-bottom: 3mm; background: #f7faf7;
+    }
+    .trip-card table { width: 100%; }
+    .trip-card td { padding: 1mm 2mm; vertical-align: top; }
+    .trip-card .lbl { font-size: 7px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+    .trip-card .val { font-weight: 700; color: #1b5e20; font-size: 11px; }
+
+    .sec-title { font-size: 8px; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 1px solid #ddd; }
+
+    .svc-grid { width: 100%; margin-bottom: 3mm; }
+    .svc-grid td { width: 25%; padding: 0 1mm; vertical-align: top; }
+    .svc-grid .box {
+      border: 1px solid #ddd; border-radius: 3px; text-align: center; padding: 1mm;
+      background: #f8faf8; font-size: 8px;
+    }
+    .svc-grid .box .ico { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+    .svc-grid .box .nm { font-weight: 600; font-size: 8px; }
+
+    .price-box {
+      border: 1px solid #ddd; border-radius: 3px; text-align: center;
+      padding: 2mm 3mm; margin-bottom: 3mm;
+    }
+    .price-box .lbl { font-size: 7px; text-transform: uppercase; letter-spacing: 1px; color: #999; }
+    .price-box .amt { font-weight: 700; font-size: 14px; }
+    .price-box.green { border-color: #c8e6c9; background: #f7faf7; }
+
+    .timeline {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      position: relative; padding: 0 15px; margin-top: 2mm;
+    }
+    .timeline::before {
+      content: ''; position: absolute; top: 8px; left: 20px; right: 20px;
+      height: 2px; background: #dee2e6; z-index: 0;
+    }
+    .step { text-align: center; position: relative; z-index: 1; flex: 1; }
+    .step .ico {
+      width: 16px; height: 16px; border-radius: 50%; background: #e9ecef;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1mm; font-size: 8px; font-weight: 700; color: #6c757d;
+    }
+    .step.done .ico { background: #1b5e20; color: #fff; }
+    .step.cur .ico { background: #1b5e20; color: #fff; box-shadow: 0 0 0 3px rgba(25,135,84,0.2); }
+    .step .lb { font-size: 6px; color: #6c757d; font-weight: 600; max-width: 45px; margin: 0 auto; line-height: 1.1; }
+    .step.done .lb, .step.cur .lb { color: #1b5e20; }
+
+    .footer { text-align: center; font-size: 7px; color: #999; margin-top: 2mm; padding-top: 2mm; border-top: 1px solid #ddd; }
+    .footer .thx { color: #1b5e20; font-weight: 700; font-size: 9px; }
+
+    .no-print { display: none; }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="header">
+      <img src="{{ url_for('static', filename='img/logo.png', _external=True) }}" alt="Turismo Chiriquí" onerror="this.style.display='none'">
+      <h1>TURISMO CHIRIQU&Iacute;</h1>
+      <div class="code">Itinerario <strong>#{{ solicitud.id }}</strong> · {{ solicitud.fecha_creacion|local_datetime('%d %b %Y') }}</div>
+    </div>
+
+    <div class="banner">
+      <span class="badge">{{ solicitud.estado|replace('_', ' ')|capitalize }}</span>
+      <div class="tit">{{ solicitud.destino_preferido or 'Viaje personalizado' }}</div>
+      <div style="font-size: 9px; color: #666;">{{ solicitud.duracion_texto() }} · {{ solicitud.numero_personas }} viajero(s)</div>
+    </div>
+
+    <table class="grid">
+      <tr>
+        <td>
+          <div class="lbl">Viajero</div>
+          <div class="val">{{ solicitud.cliente.usuario.nombre_completo }}</div>
+          <div style="font-size: 8px; color: #666;">{{ solicitud.cliente.usuario.email }}</div>
+        </td>
+        <td>
+          <div class="lbl">Salida — Regreso</div>
+          <div class="val">{{ solicitud.fecha_gira.strftime('%d %b %Y') if solicitud.fecha_gira else '—' }} — {{ solicitud.fecha_fin.strftime('%d %b %Y') if solicitud.fecha_fin else '—' }}</div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="trip-card">
+      <table>
+        <tr>
+          <td style="width: 40%;">
+            <div class="lbl">Destino</div>
+            <div class="val">{{ solicitud.destino_preferido or 'No especificado' }}</div>
+            {% if solicitud.lugares_visitar %}
+            <div style="font-size: 8px; color: #666; margin-top: 1mm;">{{ solicitud.lugares_visitar[:120] }}{% if solicitud.lugares_visitar|length > 120 %}...{% endif %}</div>
+            {% endif %}
+          </td>
+          <td style="width: 30%;">
+            <div class="lbl">Recogida</div>
+            <div class="val">{{ solicitud.lugar_recogida or 'Por definir' }}</div>
+            <div class="lbl" style="margin-top: 1mm;">Transporte</div>
+            <div class="val" style="font-size: 9px;">{{ solicitud.transporte_nombre() }}</div>
+          </td>
+          <td style="width: 30%;">
+            <div class="lbl">Presupuesto</div>
+            <div class="val">{% if solicitud.presupuesto_estimado %}B/.{{ "%.2f"|format(solicitud.presupuesto_estimado) }}{% else %}—{% endif %}</div>
+            {% if solicitud.cotizacion and solicitud.cotizacion_visible() %}
+            <div class="lbl" style="margin-top: 1mm; color: #1b5e20;">Cotización</div>
+            <div class="val" style="color: #1b5e20;">B/.{{ "%.2f"|format(solicitud.cotizacion) }}</div>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="margin-bottom: 3mm;">
+      <div class="sec-title">Servicios incluidos</div>
+      <table class="svc-grid">
+        <tr>
+          <td><div class="box"><div class="ico">Alojamiento</div><div class="nm">{{ solicitud.alojamiento_nombre() }}</div><div style="font-size: 6px; color: #999;">{{ solicitud.categoria_alojamiento_nombre() }}</div></div></td>
+          <td><div class="box"><div class="ico">Transporte</div><div class="nm">{{ solicitud.transporte_nombre() }}</div></div></td>
+          <td><div class="box"><div class="ico">Alimentación</div><div class="nm">{{ solicitud.alimentacion_nombre() }}</div></div></td>
+          <td><div class="box"><div class="ico">Guía</div><div class="nm">{{ 'Con guía' if solicitud.guia else 'Sin guía' }}</div></div></td>
+        </tr>
+      </table>
+    </div>
+
+    <table style="width: 100%; margin-bottom: 3mm;">
+      <tr>
+        <td style="width: 50%; padding-right: 1mm;">
+          <div class="price-box">
+            <div class="lbl">Presupuesto del cliente</div>
+            <div class="amt">{% if solicitud.presupuesto_estimado %}B/.{{ "%.2f"|format(solicitud.presupuesto_estimado) }}{% else %}—{% endif %}</div>
+          </div>
+        </td>
+        <td style="width: 50%; padding-left: 1mm;">
+          <div class="price-box green">
+            <div class="lbl">Cotización del asesor</div>
+            <div class="amt" style="color: #1b5e20;">{% if solicitud.cotizacion and solicitud.cotizacion_visible() %}B/.{{ "%.2f"|format(solicitud.cotizacion) }}{% else %}Pendiente{% endif %}</div>
+            {% if solicitud.cotizacion and solicitud.cotizacion_visible() and solicitud.presupuesto_estimado %}
+            {% set diff = solicitud.cotizacion - solicitud.presupuesto_estimado %}
+            <div style="font-size: 7px; color: {% if diff > 0 %}#c62828{% else %}#2e7d32{% endif %};">
+              {% if diff > 0 %}+{% endif %}B/.{{ "%.2f"|format(diff) }}
+            </div>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    {% if solicitud.observaciones %}
+    <div style="margin-bottom: 3mm; font-size: 8px; color: #555;">
+      <div class="sec-title">Notas</div>
+      <div style="white-space: pre-line;">{{ solicitud.observaciones }}</div>
+    </div>
+    {% endif %}
+
+    {% if solicitud.motivo_rechazo %}
+    <div style="margin-bottom: 3mm; padding: 2mm 3mm; border: 1px solid #f5c6cb; border-radius: 3px; background: #fef7f7; font-size: 8px; color: #991b1b;">
+      {{ solicitud.motivo_rechazo }}
+    </div>
+    {% endif %}
+
+    <div style="margin-bottom: 0;">
+      <div class="sec-title">Estado del viaje</div>
+      {% set estados_mapa = {'pendiente': 0, 'en_proceso': 1, 'cotizada': 2, 'aprobada': 3, 'completada': 4} %}
+      {% set pasos = [('Solicitud enviada', 'far fa-check-circle'), ('En revisión', 'far fa-clock'), ('Cotización enviada', 'fas fa-calculator'), ('Aceptada', 'fas fa-check-double'), ('Viaje realizado', 'fas fa-flag-checkered')] %}
+      {% set idx = estados_mapa.get(solicitud.estado, -1) %}
+      <div class="timeline">
+        {% for paso, icono in pasos %}
+        <div class="step {% if loop.index0 <= idx %}done{% endif %} {% if loop.index0 == idx %}cur{% endif %}">
+          <div class="ico">{{ loop.index }}</div>
+          <div class="lb">{{ paso }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Turismo Chiriquí S.A. · David, Chiriquí, Panamá</p>
+      <p class="thx">¡Gracias por elegirnos!</p>
+    </div>
+
+  </div>
+  <script>window.onload=function(){window.print()}</script>
+</body>
+</html>

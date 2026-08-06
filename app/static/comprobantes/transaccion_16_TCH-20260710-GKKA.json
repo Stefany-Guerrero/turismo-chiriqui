@@ -1,0 +1,15 @@
+{
+  "id_reserva": 16,
+  "codigo_transaccion": "TCH-20260710-GKKA",
+  "monto": 26.75,
+  "moneda": "USD",
+  "metodo_pago": "Yappy",
+  "telefono_contacto": "7890-7890",
+  "fecha_pago": "2026-07-10 20:26:57",
+  "nombre_cliente": "Stefany Guerrero",
+  "email_cliente": "stefanyrachel11@gmail.com",
+  "tour": "Aventura en el Volcán Barú",
+  "fecha_gira": "2026-07-10",
+  "numero_personas": 1,
+  "comprobante": "comprobante_16_TCH-20260710-GKKA.png"
+}

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Turismo Chiriquí{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7f0;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0d5c2e 0%, #0a4a25 100%);
+            color: white;
+            width: 260px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .sidebar .brand {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+        
+        .sidebar .brand .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 1.3rem;
+            color: #f5e6a3;
+        }
+        
+        .sidebar .brand h4 {
+            font-weight: 800;
+            margin-bottom: 2px;
+            font-size: 1.25rem;
+            letter-spacing: -0.3px;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        
+        .sidebar .brand small {
+            color: #fff;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 1;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+        }
+        
+        .sidebar .nav-section {
+            padding: 16px 20px 6px;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #fff;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+        
+        .sidebar .nav-link {
+            color: #fff;
+            padding: 11px 20px;
+            margin: 2px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+        
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+        
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.22);
+            color: #fff;
+            font-weight: 700;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 14px;
+            width: 22px;
+            text-align: center;
+            font-size: 1.05rem;
+        }
+        
+        .sidebar .nav-link .badge {
+            margin-left: auto;
+            font-size: 0.65rem;
+        }
+        
+        .sidebar .nav-divider {
+            border-color: rgba(255,255,255,0.06);
+            margin: 8px 20px;
+        }
+        
+        .sidebar .nav-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            background: #f5f7f0;
+        }
+        
+        .topbar {
+            background: white;
+            padding: 0 30px;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e8ece4;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+        
+        .topbar .page-title h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #1a3a2a;
+            letter-spacing: -0.3px;
+        }
+        
+        .topbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .topbar .user-info .user-name {
+            font-weight: 500;
+            color: #2d4a3a;
+            font-size: 0.85rem;
+        }
+        
+        .topbar .user-info .role-badge {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .topbar .user-info .role-badge.admin {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .topbar .user-info .role-badge.cliente {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .topbar .user-info .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #0d5c2e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        
+        .topbar .user-info .btn-logout {
+            border: 1px solid #e8ece4;
+            color: #6b7a6b;
+            background: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .topbar .user-info .btn-logout:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+        
+        .content-wrapper {
+            padding: 24px 30px;
+            min-height: calc(100vh - 64px - 57px);
+        }
+        
+        .footer {
+            background: white;
+            padding: 16px 30px;
+            border-top: 1px solid #e8ece4;
+            text-align: center;
+            color: #8a9a8a;
+            font-size: 0.8rem;
+        }
+        
+        .footer p { margin: 0; }
+        
+        .notif-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #2d4a3a;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .notif-bell:hover {
+            background: #f0f4ee;
+        }
+        .notif-bell .badge-notif {
+            position: absolute;
+            top: 0;
+            right: 2px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 0.6rem;
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+            display: none;
+        }
+        .notif-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 360px;
+            max-height: 480px;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            z-index: 2000;
+            display: none;
+            border: 1px solid #e8ece4;
+        }
+        .notif-dropdown.show { display: block; }
+        .notif-dropdown .notif-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid #e8ece4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .notif-dropdown .notif-item {
+            padding: 12px 18px;
+            border-bottom: 1px solid #f0f2ec;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+        .notif-dropdown .notif-item:hover { background: #f8faf7; }
+        .notif-dropdown .notif-item.no-leido { background: #f0f7f0; }
+        .notif-dropdown .notif-item .notif-titulo { font-weight: 600; font-size: 0.82rem; color: #1a3a2a; }
+        .notif-dropdown .notif-item .notif-mensaje { font-size: 0.78rem; color: #5a6a5a; margin-top: 2px; }
+        .notif-dropdown .notif-item .notif-fecha { font-size: 0.68rem; color: #8a9a8a; margin-top: 4px; }
+        .notif-dropdown .notif-empty { padding: 30px; text-align: center; color: #8a9a8a; font-size: 0.85rem; }
+        
+        .card {
+            border: 1px solid #e8ece4;
+            border-radius: 12px;
+            background: white;
+            transition: box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(13, 92, 46, 0.06);
+        }
+        
+        .table {
+            margin: 0;
+        }
+        
+        .table thead th {
+            background: #f5f7f0;
+            font-weight: 600;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5a6a5a;
+            border-bottom: 1px solid #e8ece4;
+            padding: 12px 16px;
+        }
+        
+        .table td {
+            padding: 12px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f2ec;
+        }
+        
+        .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 18px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: #0d5c2e;
+            border-color: #0d5c2e;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #0a4a25;
+            border-color: #0a4a25;
+            box-shadow: 0 4px 12px rgba(13, 92, 46, 0.25);
+        }
+        
+        .btn-outline-success {
+            color: #0d5c2e;
+            border-color: #0d5c2e;
+            background: transparent;
+        }
+        
+        .btn-outline-success:hover {
+            background: #0d5c2e;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f5e6a3;
+            border-color: #f5e6a3;
+            color: #6b5900;
+        }
+        
+        .btn-warning:hover {
+            background: #f0d97a;
+            border-color: #f0d97a;
+            color: #4a3e00;
+        }
+        
+        .btn-info {
+            background: #c7e8f0;
+            border-color: #c7e8f0;
+            color: #1a5c6b;
+        }
+        
+        .btn-info:hover {
+            background: #a8dce8;
+            border-color: #a8dce8;
+            color: #0e3d47;
+        }
+        
+        .btn-danger {
+            background: #fce4e4;
+            border-color: #fce4e4;
+            color: #991b1b;
+        }
+        
+        .btn-danger:hover {
+            background: #f9c7c7;
+            border-color: #f9c7c7;
+            color: #7a1212;
+        }
+        
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid #e8ece4;
+            padding: 18px 24px;
+        }
+        
+        .modal-body { padding: 24px; }
+        .modal-footer { border-top: 1px solid #e8ece4; padding: 16px 24px; }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #dce0d8;
+            padding: 9px 14px;
+            font-size: 0.88rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #0d5c2e;
+            box-shadow: 0 0 0 3px rgba(13, 92, 46, 0.1);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: #2d4a3a;
+            margin-bottom: 4px;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 10px;
+            padding: 14px 18px;
+        }
+        
+        .alert-success { background: #e6f5e6; color: #0a4a25; }
+        .alert-danger { background: #fce4e4; color: #991b1b; }
+        .alert-warning { background: #fef9e6; color: #6b5900; }
+        .alert-info { background: #e6f2f5; color: #1a5c6b; }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                min-height: auto;
+            }
+            .sidebar .nav-footer { position: static; }
+            .main-content { margin-left: 0; }
+            .topbar {
+                height: auto;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .content-wrapper { padding: 16px; }
+        }
+
+        @media print {
+            .sidebar, .topbar, .footer, nav, .no-print,
+            .btn, .btn-logout, .user-info, .notif-bell,
+            .notif-dropdown, .notif-container,
+            button, .navbar, .alert, .d-none { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 0 !important; }
+            .content-wrapper { padding: 0 !important; margin: 0 !important; }
+            body { background: #fff !important; font-size: 11px; }
+            .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+            @page { margin: 0; }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar">
+        <div class="brand">
+            <div class="brand text-center">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" 
+                     alt="Turismo Chiriquí" 
+                     style="height: 50px; width: auto; display: block; margin: 0 auto 10px; border-radius: 10px;">
+                <h4 class="mb-0">Turismo Chiriquí</h4>
+                <small class="text-uppercase">Descubre el Paraíso</small>
+            </div>
+        </div>
+        
+        <nav class="nav flex-column mt-1">
+            {% if current_user.is_authenticated %}
+                {% if current_user.rol == 'admin' %}
+                <div class="nav-section">Navegación</div>
+
+                <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" 
+                   href="{{ url_for('main.index') }}">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+
+                <a class="nav-link {% if request.endpoint == 'auth.dashboard' %}active{% endif %}" 
+                   href="{{ url_for('auth.dashboard') }}">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </a>
+
+                <div class="nav-divider"></div>
+                <div class="nav-section">Gestión</div>
+                
+                <a class="nav-link {% if request.endpoint and 'servicios' in request.endpoint %}active{% endif %}" 
+                   href="{{ url_for('servicios.index') }}">
+                    <i class="fas fa-umbrella-beach"></i> Tours
+                </a>
+                
+                <a class="nav-link {% if request.endpoint and 'reservas' in request.endpoint %}active{% endif %}" 
+                   href="{{ url_for('reservas.index') }}">
+                    <i class="fas fa-calendar-check"></i> Reservas
+                </a>
+                
+                <a class="nav-link" 
+                   href="{{ url_for('reservas.index', tipo='solicitud') }}">
+                    <i class="fas fa-clipboard-list"></i> Solicitudes
+                </a>
+                
+                <a class="nav-link {% if request.endpoint and 'promociones' in request.endpoint %}active{% endif %}" 
+                   href="{{ url_for('promociones.index') }}">
+                    <i class="fas fa-tags"></i> Promociones
+                </a>
+
+                <a class="nav-link {% if request.endpoint and 'proveedores' in request.endpoint %}active{% endif %}" 
+                   href="{{ url_for('proveedores.index') }}">
+                    <i class="fas fa-truck"></i> Proveedores
+                </a>
+
+                <a class="nav-link {% if request.endpoint == 'auth.clientes' %}active{% endif %}" 
+                   href="{{ url_for('auth.clientes') }}">
+                    <i class="fas fa-users"></i> Clientes
+                </a>
+
+                <a class="nav-link {% if request.endpoint and 'transacciones' in request.endpoint %}active{% endif %}" 
+                   href="{{ url_for('transacciones.index') }}">
+                    <i class="fas fa-credit-card"></i> Transacciones
+                </a>
+                
+                <div class="nav-divider"></div>
+                {% endif %}
+                
+                {% if current_user.rol == 'cliente' %}
+                <div class="nav-section">Navegación</div>
+
+                <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" 
+                   href="{{ url_for('main.index') }}">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+
+                <div class="nav-divider"></div>
+                <div class="nav-section">Mi Viaje</div>
+
+                <a class="nav-link" href="{{ url_for('planificador.index') }}">
+                    <i class="fas fa-map-marked-alt"></i> Planificar Viaje
+                </a>
+                
+                <a class="nav-link" href="{{ url_for('main.mis_reservas') }}">
+                    <i class="fas fa-ticket-alt"></i> Mis Reservas
+                </a>
+                
+                <a class="nav-link" href="{{ url_for('solicitudes.mis_solicitudes') }}">
+                    <i class="fas fa-file-alt"></i> Mis Solicitudes
+                </a>
+                
+                <div class="nav-divider"></div>
+                {% endif %}
+                
+                <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+                <form id="logout-form" action="{{ url_for('auth.logout') }}" method="GET" style="display:none;"></form>
+            {% else %}
+                <div class="nav-section">Navegación</div>
+                
+                <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" 
+                   href="{{ url_for('main.index') }}">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+                
+                <a class="nav-link {% if request.endpoint == 'main.asistente_viaje' %}active{% endif %}" 
+                   href="{{ url_for('main.asistente_viaje') }}">
+                    <i class="fas fa-compass"></i> Explorar Tours
+                </a>
+                
+                <a class="nav-link" href="{{ url_for('auth.login') }}">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </a>
+                
+                <a class="nav-link" href="{{ url_for('auth.register') }}">
+                    <i class="fas fa-user-plus"></i> Registrarse
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+    
+    <div class="main-content">
+        <div class="topbar">
+            <div class="page-title">
+                <h5>
+                    {% block page_title %}Panel de Control{% endblock %}
+                </h5>
+            </div>
+            
+            <div class="user-info">
+                {% if current_user.is_authenticated %}
+                <div class="position-relative" id="notif-container">
+                    <div class="notif-bell" onclick="toggleNotificaciones()">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge-notif" id="notif-count">0</span>
+                    </div>
+                    <div class="notif-dropdown" id="notif-dropdown">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="marcarTodasLeidas()" style="font-size:0.75rem;">Marcar todas leídas</button>
+                        </div>
+                        <div id="notif-list"></div>
+                    </div>
+                </div>
+                <span class="user-name d-none d-md-inline">
+                    {{ current_user.nombre_completo }}
+                </span>
+                <span class="role-badge {% if current_user.rol == 'admin' %}admin{% else %}cliente{% endif %}">
+                    {{ current_user.rol }}
+                </span>
+                <div class="avatar">
+                    {{ current_user.nombre_completo[0]|upper }}
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="content-wrapper">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}times-circle{% else %}info-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+        
+        <div class="footer">
+            © 2026 Turismo Chiriquí, S.A. — Todos los derechos reservados.
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                const closeBtn = alert.querySelector('.btn-close');
+                if (closeBtn) closeBtn.click();
+            });
+        }, 5000);
+
+        function actualizarContadorNotif() {
+            fetch('{{ url_for("solicitudes.notificaciones_no_leidas") }}')
+                .then(r => r.json())
+                .then(data => {
+                    var badge = document.getElementById('notif-count');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                });
+        }
+
+        function cargarNotificaciones() {
+            fetch('{{ url_for("solicitudes.get_notificaciones") }}')
+                .then(r => r.json())
+                .then(data => {
+                    var list = document.getElementById('notif-list');
+                    if (data.length === 0) {
+                        list.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash fa-2x mb-2" style="color:#d0d8d0;"></i><br>No tienes notificaciones</div>';
+                        return;
+                    }
+                    var html = '';
+                    data.forEach(function(n) {
+                        var noLeido = n.leido ? '' : 'no-leido';
+                        var icono = 'info-circle';
+                        if (n.tipo === 'cotizada') icono = 'file-invoice-dollar';
+                        else if (n.tipo === 'aprobada') icono = 'check-circle';
+                        else if (n.tipo === 'rechazada') icono = 'times-circle';
+                        else if (n.tipo === 'en_proceso') icono = 'clock';
+                        html += '<div class="notif-item ' + noLeido + '" onclick="marcarLeida(' + n.id + ', \'' + n.referencia_tipo + '\', ' + (n.referencia_id || 0) + ')">';
+                        html += '<div class="notif-titulo"><i class="fas fa-' + icono + ' text-success me-1"></i> ' + n.titulo + '</div>';
+                        html += '<div class="notif-mensaje">' + n.mensaje + '</div>';
+                        html += '<div class="notif-fecha">' + n.fecha + '</div>';
+                        html += '</div>';
+                    });
+                    list.innerHTML = html;
+                });
+        }
+
+        function toggleNotificaciones() {
+            var dd = document.getElementById('notif-dropdown');
+            dd.classList.toggle('show');
+            if (dd.classList.contains('show')) {
+                cargarNotificaciones();
+            }
+        }
+
+        function marcarLeida(id, tipo, refId) {
+            fetch('{{ url_for("solicitudes.marcar_notificacion_leida", id=0) }}'.replace('0', id), {
+                method: 'POST'
+            }).then(function() {
+                actualizarContadorNotif();
+                cargarNotificaciones();
+                if (refId && tipo === 'solicitud') {
+                    {% if current_user.rol == 'admin' %}
+                    window.location.href = '{{ url_for("solicitudes.admin_solicitudes") }}';
+                    {% else %}
+                    window.location.href = '{{ url_for("solicitudes.detalle_solicitud", id=0) }}'.replace('0', refId);
+                    {% endif %}
+                }
+            });
+        }
+
+        function marcarTodasLeidas() {
+            fetch('{{ url_for("solicitudes.marcar_todas_notificaciones_leidas") }}', {
+                method: 'POST'
+            }).then(function() {
+                actualizarContadorNotif();
+                cargarNotificaciones();
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            var container = document.getElementById('notif-container');
+            if (container && !container.contains(e.target)) {
+                document.getElementById('notif-dropdown').classList.remove('show');
+            }
+        });
+
+        actualizarContadorNotif();
+        setInterval(actualizarContadorNotif, 15000);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

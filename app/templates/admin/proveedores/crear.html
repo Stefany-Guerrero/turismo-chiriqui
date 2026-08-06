@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Proveedor{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Nuevo Proveedor</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="proveedorForm">
+                        {{ form.hidden_tag() }}
+                        {{ form.especificaciones_json(class="d-none") }}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    {{ form.nombre.label(class="form-label") }}
+                                    {{ form.nombre(class="form-control", placeholder="Nombre del negocio o empresa") }}
+                                    {% for error in form.nombre.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.activo.label(class="form-label") }}
+                                    <div class="form-check form-switch mt-2">
+                                        {{ form.activo(class="form-check-input") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.tipo.label(class="form-label") }}
+                                    {{ form.tipo(class="form-select", id="tipo_select", onchange="toggleEspecificaciones()") }}
+                                    {% for error in form.tipo.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.provincia.label(class="form-label") }}
+                                    {{ form.provincia(class="form-select") }}
+                                    {% for error in form.provincia.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.contacto.label(class="form-label") }}
+                                    {{ form.contacto(class="form-control", placeholder="Persona de contacto") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.telefono.label(class="form-label") }}
+                                    {{ form.telefono(class="form-control", placeholder="0000-0000") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control", placeholder="correo@ejemplo.com") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.direccion.label(class="form-label") }}
+                                    {{ form.direccion(class="form-control", placeholder="Dirección física") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- === ESPECIFICACIONES POR TIPO === -->
+                        <div id="especificaciones_section" class="card mt-4 border-success d-none">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-cogs"></i> <span id="espec_titulo">Especificaciones</span></h5>
+                            </div>
+                            <div class="card-body" id="espec_campos">
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="{{ url_for('proveedores.index') }}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary" onclick="return recogerEspecificaciones()">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var ESPEC_SCHEMA = {{ espec_schema | tojson | safe }};
+
+function toggleEspecificaciones() {
+    var tipo = document.getElementById('tipo_select').value;
+    var section = document.getElementById('especificaciones_section');
+    var container = document.getElementById('espec_campos');
+    
+    if (!tipo || !ESPEC_SCHEMA[tipo]) {
+        section.classList.add('d-none');
+        return;
+    }
+    
+    var schema = ESPEC_SCHEMA[tipo];
+    document.getElementById('espec_titulo').textContent = 'Especificaciones - ' + schema.label;
+    
+    var html = '<div class="row">';
+    schema.campos.forEach(function(campo) {
+        html += '<div class="col-md-6">' + renderCampo(campo) + '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+    section.classList.remove('d-none');
+}
+
+function renderCampo(campo) {
+    var html = '<div class="mb-3">';
+    if (campo.type === 'hidden') {
+        html += '<input type="hidden" name="espec_' + campo.name + '" id="espec_' + campo.name + '" value="' + (campo.default || '') + '">';
+    } else if (campo.type === 'select') {
+        html += '<label class="form-label fw-bold">' + campo.label + '</label>';
+        html += '<select class="form-select" id="espec_' + campo.name + '" name="espec_' + campo.name + '">';
+        campo.options.forEach(function(opt) {
+            var selected = (opt[0] === (campo.default || '')) ? ' selected' : '';
+            html += '<option value="' + opt[0] + '"' + selected + '>' + opt[1] + '</option>';
+        });
+        html += '</select>';
+    } else if (campo.type === 'checklist') {
+        html += '<label class="form-label fw-bold">' + campo.label + '</label>';
+        html += '<div class="row">';
+        campo.options.forEach(function(opt) {
+            var checked = (campo.default && campo.default.includes(opt[0])) ? ' checked' : '';
+            html += '<div class="col-md-4 mb-1">';
+            html += '<div class="form-check">';
+            html += '<input class="form-check-input" type="checkbox" id="espec_' + campo.name + '_' + opt[0] + '" name="espec_' + campo.name + '" value="' + opt[0] + '"' + checked + '>';
+            html += '<label class="form-check-label small" for="espec_' + campo.name + '_' + opt[0] + '">' + opt[1] + '</label>';
+            html += '</div></div>';
+        });
+        html += '</div>';
+    } else if (campo.type === 'boolean') {
+        html += '<div class="form-check form-switch">';
+        var checked = campo.default ? ' checked' : '';
+        html += '<input class="form-check-input" type="checkbox" id="espec_' + campo.name + '" name="espec_' + campo.name + '" value="1"' + checked + '>';
+        html += '<label class="form-check-label fw-bold" for="espec_' + campo.name + '">' + campo.label + '</label>';
+        html += '</div>';
+    } else if (campo.type === 'time') {
+        html += '<label class="form-label fw-bold">' + campo.label + '</label>';
+        html += '<input type="time" class="form-control" id="espec_' + campo.name + '" name="espec_' + campo.name + '" value="' + (campo.default || '') + '">';
+    } else if (campo.type === 'number') {
+        html += '<label class="form-label fw-bold">' + campo.label + '</label>';
+        html += '<input type="number" class="form-control" id="espec_' + campo.name + '" name="espec_' + campo.name + '" min="' + (campo.min || 0) + '" step="' + (campo.step || '1') + '" value="' + (campo.default || '') + '">';
+    } else if (campo.type === 'textarea') {
+        html += '<label class="form-label fw-bold">' + campo.label + '</label>';
+        html += '<textarea class="form-control" id="espec_' + campo.name + '" name="espec_' + campo.name + '" rows="3">' + (campo.default || '') + '</textarea>';
+    } else {
+        html += '<label class="form-label fw-bold">' + campo.label + '</label>';
+        html += '<input type="text" class="form-control" id="espec_' + campo.name + '" name="espec_' + campo.name + '" value="' + (campo.default || '') + '">';
+    }
+    html += '</div>';
+    return html;
+}
+
+function recogerEspecificaciones() {
+    var tipo = document.getElementById('tipo_select').value;
+    if (!tipo) return true;
+    
+    var schema = ESPEC_SCHEMA[tipo];
+    if (!schema) return true;
+    
+    var data = {};
+    schema.campos.forEach(function(campo) {
+        if (campo.type === 'checklist') {
+            var checks = document.querySelectorAll('input[name="espec_' + campo.name + '"]:checked');
+            data[campo.name] = Array.from(checks).map(function(c) { return c.value; });
+        } else if (campo.type === 'boolean') {
+            var el = document.getElementById('espec_' + campo.name);
+            data[campo.name] = el ? el.checked : false;
+        } else {
+            var el = document.getElementById('espec_' + campo.name);
+            if (el) {
+                data[campo.name] = el.value;
+            }
+        }
+    });
+    
+    document.getElementById('especificaciones_json').value = JSON.stringify(data);
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleEspecificaciones();
+});
+</script>
+{% endblock %}

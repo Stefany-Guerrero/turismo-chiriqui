@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block title %}Itinerario #{{ solicitud.id }} - Turismo Chiriquí{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 820px;" id="print-container">
+
+  <!-- HEADER -->
+  <div class="text-center mb-4">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Turismo Chiriquí" height="45" onerror="this.style.display='none'">
+    <h2 class="fw-bold text-success mt-2 mb-1" style="letter-spacing: 1px;">RESUMEN DE VIAJE</h2>
+    <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+      <span class="text-muted small"><i class="far fa-file-alt"></i> Código: <strong>#{{ solicitud.id }}</strong></span>
+      <span class="mx-1 text-muted">|</span>
+      <span class="text-muted small"><i class="far fa-calendar-alt"></i> {{ solicitud.fecha_creacion|local_datetime('%d %b %Y') }}</span>
+      <span class="mx-1 text-muted">|</span>
+      <span class="badge px-3 py-1
+        {% if solicitud.estado == 'pendiente' %}bg-warning text-dark
+        {% elif solicitud.estado == 'en_proceso' %}bg-info text-dark
+        {% elif solicitud.estado == 'cotizada' %}bg-primary
+        {% elif solicitud.estado == 'aprobada' %}bg-success
+        {% elif solicitud.estado == 'rechazada' %}bg-danger
+        {% else %}bg-secondary{% endif %}">
+        {{ solicitud.estado|replace('_', ' ')|capitalize }}
+      </span>
+    </div>
+  </div>
+
+  <!-- BOARDING PASS -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="card-body p-4">
+      <div class="row align-items-center text-center g-0">
+        <div class="col-5">
+          <div class="text-muted small text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 1px;">Salida</div>
+          <div class="fw-bold fs-5 mt-1">{{ solicitud.fecha_gira.strftime('%d %b %Y') if solicitud.fecha_gira else '—' }}</div>
+          <div class="text-muted small mt-1">{{ solicitud.lugar_recogida or 'Por definir' }}</div>
+        </div>
+        <div class="col-2 position-relative">
+          <div class="d-flex align-items-center justify-content-center gap-1">
+            <span class="border-top border-2 border-muted d-block" style="width: 30px;"></span>
+            <i class="fas fa-circle text-success" style="font-size: 8px;"></i>
+            <i class="fas fa-circle text-success" style="font-size: 8px;"></i>
+            <i class="fas fa-circle text-success" style="font-size: 8px;"></i>
+            <span class="border-top border-2 border-muted d-block" style="width: 30px;"></span>
+          </div>
+          <div class="fw-bold text-success small mt-1">{{ solicitud.duracion_texto() }}</div>
+          <div class="text-muted small">{{ solicitud.numero_personas }} viajero(s)</div>
+        </div>
+        <div class="col-5">
+          <div class="text-muted small text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 1px;">Regreso</div>
+          <div class="fw-bold fs-5 mt-1">{{ solicitud.fecha_fin.strftime('%d %b %Y') if solicitud.fecha_fin else '—' }}</div>
+          <div class="text-muted small mt-1">{{ solicitud.destino_preferido or 'Destino' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESTINO + CLIENTE -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-7">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-body p-3">
+          <h6 class="fw-bold text-success mb-2"><i class="fas fa-map-marked-alt"></i> Destino principal</h6>
+          <p class="fw-bold fs-5 mb-1">{{ solicitud.destino_preferido or 'No especificado' }}</p>
+          {% if solicitud.lugares_visitar %}
+          <div class="mt-2 pt-2 border-top">
+            <div class="text-muted small fw-bold text-uppercase" style="font-size: 9px; letter-spacing: 1px;">Lugares a visitar</div>
+            <div class="small mt-1" style="white-space: pre-line;">{{ solicitud.lugares_visitar }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-body p-3">
+          <h6 class="fw-bold text-success mb-2"><i class="fas fa-user"></i> Viajero</h6>
+          <div class="fw-bold">{{ solicitud.cliente.usuario.nombre_completo }}</div>
+          <div class="small text-muted">{{ solicitud.cliente.usuario.email }}</div>
+          <div class="small text-muted">Tel: {{ solicitud.cliente.telefono or solicitud.cliente.usuario.telefono or '—' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICIOS -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-3">
+      <h6 class="fw-bold text-success mb-3"><i class="fas fa-concierge-bell"></i> Servicios solicitados</h6>
+      <div class="row g-2">
+        <div class="col-6 col-md-3">
+          <div class="border rounded-3 p-2 text-center h-100" style="background: #f8faf8;">
+            <i class="fas fa-hotel text-info mb-1"></i>
+            <div class="fw-bold small">{{ solicitud.alojamiento_nombre() }}</div>
+            <small class="text-muted" style="font-size: 10px;">{{ solicitud.categoria_alojamiento_nombre() }}</small>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="border rounded-3 p-2 text-center h-100" style="background: #f8faf8;">
+            <i class="fas fa-truck text-secondary mb-1"></i>
+            <div class="fw-bold small">{{ solicitud.transporte_nombre() }}</div>
+            <small class="text-muted" style="font-size: 10px;">{{ solicitud.lugar_recogida or 'Sin recogida' }}</small>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="border rounded-3 p-2 text-center h-100" style="background: #f8faf8;">
+            <i class="fas fa-utensils text-warning mb-1"></i>
+            <div class="fw-bold small">{{ solicitud.alimentacion_nombre() }}</div>
+            <small class="text-muted" style="font-size: 10px;">Alimentación</small>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="border rounded-3 p-2 text-center h-100" style="background: #f8faf8;">
+            <i class="fas fa-user-tie text-primary mb-1"></i>
+            <div class="fw-bold small">{{ 'Sí' if solicitud.guia else 'No' }}</div>
+            <small class="text-muted" style="font-size: 10px;">Guía turístico</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRESUPUESTO VS COTIZACIÓN -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-body p-3 text-center">
+          <div class="text-muted small text-uppercase fw-bold" style="font-size: 9px; letter-spacing: 1px;">Presupuesto del cliente</div>
+          <div class="fw-bold fs-4 mt-1">
+            {% if solicitud.presupuesto_estimado %}B/.{{ "%.2f"|format(solicitud.presupuesto_estimado) }}{% else %}—{% endif %}
+          </div>
+          {% if solicitud.presupuesto_tipo %}
+          <div class="text-muted small">{{ solicitud.presupuesto_tipo|replace('_', ' ') }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="card border-0 shadow-sm rounded-3 h-100 border-success border-opacity-25">
+        <div class="card-body p-3 text-center" style="background: #f7faf7;">
+          <div class="text-muted small text-uppercase fw-bold" style="font-size: 9px; letter-spacing: 1px;">Cotización del asesor</div>
+          <div class="fw-bold fs-4 text-success mt-1">
+            {% if solicitud.cotizacion and solicitud.cotizacion_visible() %}B/.{{ "%.2f"|format(solicitud.cotizacion) }}{% else %}Pendiente{% endif %}
+          </div>
+          {% if solicitud.cotizacion and solicitud.cotizacion_visible() and solicitud.presupuesto_estimado %}
+          {% set diff = solicitud.cotizacion - solicitud.presupuesto_estimado %}
+          <div class="small text-{% if diff > 0 %}danger{% else %}success{% endif %} fw-bold">
+            {% if diff > 0 %}+{% endif %}B/.{{ "%.2f"|format(diff) }}
+            <span class="text-muted fw-normal">vs presupuesto</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBSERVACIONES -->
+  {% if solicitud.observaciones %}
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-3">
+      <h6 class="fw-bold text-success mb-2"><i class="fas fa-comment"></i> Notas del asesor</h6>
+      <p class="mb-0 small" style="white-space: pre-line;">{{ solicitud.observaciones }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- MOTIVO RECHAZO -->
+  {% if solicitud.motivo_rechazo %}
+  <div class="alert alert-danger rounded-3 py-2 px-3 mb-4">
+    <i class="fas fa-exclamation-triangle"></i> {{ solicitud.motivo_rechazo }}
+  </div>
+  {% endif %}
+
+  <!-- TIMELINE -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-3">
+      <h6 class="fw-bold text-center text-success mb-3"><i class="fas fa-chart-line"></i> Estado del viaje</h6>
+      {% set estados_mapa = {'pendiente': 0, 'en_proceso': 1, 'cotizada': 2, 'aprobada': 3, 'completada': 4} %}
+      {% set pasos = [
+        ('Solicitud enviada', 'far fa-check-circle'),
+        ('En revisión', 'far fa-clock'),
+        ('Cotización enviada', 'fas fa-calculator'),
+        ('Aceptada / Viaje confirmado', 'fas fa-check-double'),
+        ('Viaje realizado', 'fas fa-flag-checkered')
+      ] %}
+      {% set idx_actual = estados_mapa.get(solicitud.estado, -1) %}
+      <div class="progress-timeline">
+        {% for paso, icono in pasos %}
+        <div class="progress-step {% if loop.index0 <= idx_actual %}completed{% endif %} {% if loop.index0 == idx_actual %}current{% endif %}">
+          <div class="step-icon"><i class="{{ icono }}"></i></div>
+          <div class="step-label">{{ paso }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="text-center mt-4 no-print">
+    {% if solicitud.estado == 'cotizada' and solicitud.cotizacion %}
+    <a href="{{ url_for('solicitudes.pagar_solicitud', id=solicitud.id) }}" class="btn btn-success btn-lg px-5 py-3 fw-bold shadow-sm mb-3">
+      <i class="fas fa-credit-card"></i> Aceptar y Pagar B/.{{ "%.2f"|format(solicitud.cotizacion) }}
+    </a>
+    {% endif %}
+    <button class="btn btn-outline-success" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
+    <a href="{{ url_for('main.mis_reservas') }}" class="btn btn-success"><i class="fas fa-arrow-left"></i> Volver</a>
+  </div>
+</div>
+
+<style>
+.progress-timeline {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  position: relative; padding: 0 5px;
+}
+.progress-timeline::before {
+  content: ''; position: absolute; top: 18px; left: 35px; right: 35px;
+  height: 3px; background: #dee2e6; z-index: 0;
+}
+.progress-step { text-align: center; position: relative; z-index: 1; flex: 1; }
+.step-icon {
+  width: 36px; height: 36px; border-radius: 50%; background: #e9ecef;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 6px; font-size: 0.85rem; color: #6c757d;
+}
+.progress-step.completed .step-icon { background: #198754; color: #fff; }
+.progress-step.current .step-icon { background: #198754; color: #fff; box-shadow: 0 0 0 4px rgba(25,135,84,0.2); }
+.step-label { font-size: 0.7rem; color: #6c757d; font-weight: 600; max-width: 85px; margin: 0 auto; line-height: 1.2; }
+.progress-step.completed .step-label, .progress-step.current .step-label { color: #198754; }
+@media (max-width: 576px) {
+  .step-label { font-size: 0.6rem; max-width: 60px; }
+  .step-icon { width: 30px; height: 30px; font-size: 0.7rem; }
+  .progress-timeline::before { left: 25px; right: 25px; top: 15px; }
+}
+
+@media print {
+  @page { margin: 0; }
+  body { background: #fff !important; padding: 18mm 15mm; margin: 0 !important; font-size: 11px; }
+  .container { max-width: 100% !important; }
+  .mb-4 { margin-bottom: 2mm !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; page-break-inside: avoid; }
+  .card-body { padding: 3mm 4mm !important; }
+  h2.fw-bold { font-size: 15px; margin: 0 !important; }
+  h6.fw-bold { font-size: 10px; margin-bottom: 1mm !important; }
+  .fs-5 { font-size: 12px !important; }
+  .fw-bold.fs-4 { font-size: 13px !important; }
+  .small { font-size: 9px !important; }
+  img[alt="Turismo Chiriqu\u00ed"] { height: 26px !important; margin-bottom: 0 !important; }
+  .col-6.col-md-3 .border.rounded-3 { padding: 2mm !important; }
+  .p-3 { padding: 2mm !important; }
+  .p-4 { padding: 2mm 3mm !important; }
+  .step-icon { width: 26px !important; height: 26px !important; font-size: 0.75rem !important; }
+  .step-label { max-width: 75px !important; font-size: 0.7rem !important; }
+  .progress-timeline::before { height: 2px !important; top: 13px !important; }
+  .progress-timeline { margin-top: 2mm !important; }
+  .step-icon, .progress-step.completed .step-icon, .progress-step.current .step-icon,
+  .progress-timeline::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .progress-step.completed .step-icon { background: #1b5e20 !important; }
+  .progress-step.current .step-icon { background: #1b5e20 !important; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Encuentra tu tour ideal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0"><i class="fas fa-compass"></i> Encuentra tu tour ideal</h3>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted">Cuéntanos cómo quieres vivir tu experiencia y te mostraremos los mejores tours</p>
+                    
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.fecha_inicio.label(class="form-label fw-bold") }}
+                                    {{ form.fecha_inicio(class="form-control", type="date") }}
+                                    {% for error in form.fecha_inicio.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.fecha_fin.label(class="form-label fw-bold") }}
+                                    {{ form.fecha_fin(class="form-control", type="date") }}
+                                    {% for error in form.fecha_fin.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.numero_personas.label(class="form-label fw-bold") }}
+                                    {{ form.numero_personas(class="form-control", min="1") }}
+                                    {% for error in form.numero_personas.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.presupuesto.label(class="form-label fw-bold") }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">B/.</span>
+                                        {{ form.presupuesto(class="form-control", placeholder="Opcional") }}
+                                    </div>
+                                    {% for error in form.presupuesto.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.destino.label(class="form-label fw-bold") }}
+                            {{ form.destino(class="form-select") }}
+                            {% for error in form.destino.errors %}
+                                <span class="text-danger small">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.transporte.label(class="form-label fw-bold") }}
+                                    {{ form.transporte(class="form-select") }}
+                                    {% for error in form.transporte.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.experiencia.label(class="form-label fw-bold") }}
+                                    {{ form.experiencia(class="form-select") }}
+                                    {% for error in form.experiencia.errors %}
+                                        <span class="text-danger small">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.requiere_hospedaje(class="form-check-input") }}
+                                    {{ form.requiere_hospedaje.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.requiere_alimentacion(class="form-check-input") }}
+                                    {{ form.requiere_alimentacion.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.requiere_guia(class="form-check-input") }}
+                                    {{ form.requiere_guia.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 mt-3">
+                            {{ form.observaciones.label(class="form-label") }}
+                            {{ form.observaciones(class="form-control", rows=2, placeholder="Alguna preferencia adicional...") }}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-success btn-lg fw-bold") }}
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="text-muted">
+                            <i class="fas fa-pencil-alt text-warning"></i>
+                            ¿No encontraste el tour ideal? 
+                            <a href="{{ url_for('solicitudes.crear') }}" class="text-success fw-bold">
+                                Solicita un viaje personalizado
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var destExpMap = {{ dest_exp_map | tojson }};
+    var destinoSel = document.querySelector('select[name="destino"]');
+    var expSel = document.querySelector('select[name="experiencia"]');
+    var allOptions = Array.from(expSel.options).map(function(o) {
+        return {value: o.value, text: o.text};
+    });
+    if (destinoSel && expSel) {
+        destinoSel.addEventListener('change', function() {
+            var destino = this.value;
+            if (!destino) {
+                expSel.innerHTML = '';
+                allOptions.forEach(function(o) {
+                    var opt = document.createElement('option');
+                    opt.value = o.value; opt.text = o.text;
+                    expSel.appendChild(opt);
+                });
+                return;
+            }
+            var cats = (destExpMap[destino] || '').split(',').map(function(s) { return s.trim(); });
+            expSel.innerHTML = '';
+            allOptions.forEach(function(o) {
+                if (!o.value || cats.indexOf(o.value) !== -1) {
+                    var opt = document.createElement('option');
+                    opt.value = o.value; opt.text = o.text;
+                    expSel.appendChild(opt);
+                }
+            });
+            if (cats.length === 1) {
+                expSel.value = cats[0];
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

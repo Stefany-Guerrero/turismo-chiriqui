@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Proveedores{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Proveedores</h1>
+        <a href="{{ url_for('proveedores.crear') }}" class="btn btn-primary">Nuevo Proveedor</a>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Provincia</th>
+                            <th>Contacto</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Tours</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in proveedores %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td><strong>{{ p.nombre }}</strong></td>
+                            <td>
+                                {% if p.tipo %}
+                                    {% set tipos_label = {'hotel': 'Hotel', 'airbnb': 'Airbnb', 'cabana': 'Cabaña', 'transporte': 'Transporte', 'transporte_maritimo': 'Transp. marítimo', 'guia': 'Guía', 'restaurante': 'Restaurante', 'operador': 'Operador', 'atraccion': 'Atracción', 'equipo': 'Equipo', 'seguros': 'Seguros', 'otro': 'Otro'} %}
+                                    <span class="badge bg-info">{{ tipos_label.get(p.tipo, p.tipo) }}</span>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>{{ p.provincia or '-' }}</td>
+                            <td>{{ p.contacto or '-' }}</td>
+                            <td>
+                                {% if p.telefono %}
+                                    <a href="tel:{{ p.telefono }}" class="text-decoration-none" title="Llamar">
+                                        <i class="fas fa-phone text-success"></i> {{ p.telefono }}
+                                    </a>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>
+                                {% if p.email %}
+                                    <a href="mailto:{{ p.email }}" class="text-decoration-none" title="Enviar correo">
+                                        <i class="fas fa-envelope text-primary"></i> {{ p.email }}
+                                    </a>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>{{ p.servicios|length }}</td>
+                            <td>
+                                {% if p.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm" title="Contactar"
+                                        onclick="mostrarContacto({{ p.id }})">
+                                    <i class="fas fa-address-card"></i>
+                                </button>
+                                <a href="{{ url_for('proveedores.editar', id=p.id) }}" class="btn btn-warning btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('proveedores.eliminar', id=p.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar {{ p.nombre }}?');">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not proveedores %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">No hay proveedores registrados</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONTACTO -->
+<div class="modal fade" id="modalContacto" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-address-card"></i> Contactar proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContactoBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var PROVEEDORES = {{ proveedores_json | safe }};
+
+function mostrarContacto(id) {
+    var p = PROVEEDORES.find(function(pv) { return pv.id === id; });
+    if (!p) return;
+    
+    var tipos_label = {'hotel': 'Hotel', 'airbnb': 'Airbnb', 'cabana': 'Cabaña', 'transporte': 'Transporte', 'transporte_maritimo': 'Transp. marítimo', 'guia': 'Guía', 'restaurante': 'Restaurante', 'operador': 'Operador', 'atraccion': 'Atracción', 'equipo': 'Equipo', 'seguros': 'Seguros', 'otro': 'Otro'};
+    
+    var html = '<div class="text-center mb-3">';
+    html += '<h4 class="fw-bold">' + p.nombre + '</h4>';
+    html += '<span class="badge bg-info fs-6">' + (tipos_label[p.tipo] || p.tipo) + '</span>';
+    if (p.provincia) html += ' <span class="badge bg-secondary fs-6">' + p.provincia + '</span>';
+    html += '</div><hr>';
+    
+    html += '<div class="row">';
+    if (p.contacto) html += '<div class="col-12 mb-2"><i class="fas fa-user text-success"></i> <strong>Contacto:</strong> ' + p.contacto + '</div>';
+    if (p.telefono) html += '<div class="col-12 mb-2"><i class="fas fa-phone text-success"></i> <strong>Teléfono:</strong> <a href="tel:' + p.telefono + '">' + p.telefono + '</a></div>';
+    if (p.email) html += '<div class="col-12 mb-2"><i class="fas fa-envelope text-primary"></i> <strong>Email:</strong> <a href="mailto:' + p.email + '">' + p.email + '</a></div>';
+    if (p.direccion) html += '<div class="col-12 mb-2"><i class="fas fa-map-marker-alt text-danger"></i> <strong>Dirección:</strong> ' + p.direccion + '</div>';
+    html += '</div>';
+    
+    if (p.tours && p.tours.length > 0) {
+        html += '<hr><h6><i class="fas fa-map-signs"></i> Tours asociados:</h6><ul>';
+        p.tours.forEach(function(t) {
+            html += '<li>' + t + '</li>';
+        });
+        html += '</ul>';
+    }
+    
+    html += '<hr><div class="d-flex gap-2 justify-content-center">';
+    if (p.telefono) html += '<a href="tel:' + p.telefono + '" class="btn btn-success"><i class="fas fa-phone"></i> Llamar</a>';
+    if (p.email) html += '<a href="mailto:' + p.email + '" class="btn btn-primary"><i class="fas fa-envelope"></i> Enviar correo</a>';
+    html += '</div>';
+    
+    document.getElementById('modalContactoBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('modalContacto')).show();
+}
+</script>
+{% endblock %}

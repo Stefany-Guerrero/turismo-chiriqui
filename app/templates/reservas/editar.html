@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Reserva{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Editar Reserva #{{ reserva.id }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.cliente_id.label(class="form-label fw-bold") }}
+                                    {{ form.cliente_id(class="form-control") }}
+                                    {% if form.cliente_id.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.cliente_id.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.servicio_id.label(class="form-label fw-bold") }}
+                                    {{ form.servicio_id(class="form-control") }}
+                                    {% if form.servicio_id.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.servicio_id.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.fecha_gira.label(class="form-label fw-bold") }}
+                                    {{ form.fecha_gira(class="form-control") }}
+                                    {% if form.fecha_gira.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.fecha_gira.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.numero_personas.label(class="form-label fw-bold") }}
+                                    {{ form.numero_personas(class="form-control") }}
+                                    {% if form.numero_personas.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.numero_personas.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.total_pago.label(class="form-label fw-bold") }}
+                                    {{ form.total_pago(class="form-control", step="0.01") }}
+                                    {% if form.total_pago.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.total_pago.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.observaciones.label(class="form-label fw-bold") }}
+                            {{ form.observaciones(class="form-control", rows="3") }}
+                            {% if form.observaciones.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.observaciones.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-warning btn-lg") }}
+                            <a href="{{ url_for('reservas.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

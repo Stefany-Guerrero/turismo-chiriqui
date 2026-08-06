@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Verificar Código{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-lg border-0 animate-fade-in">
+            <div class="card-header bg-info text-white text-center py-3">
+                <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                <h4 class="mb-0">Verificar Código</h4>
+                <small>Ingresa el código de 6 dígitos</small>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-center text-muted small"><i class="fas fa-envelope"></i> Hemos enviado un código a tu correo.</p>
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.codigo.label(class="form-label fw-bold") }}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-key"></i></span>
+                            {{ form.codigo(class="form-control text-center", placeholder="6 dígitos", style="font-size:24px;letter-spacing:8px;") }}
+                        </div>
+                        {% if form.codigo.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.codigo.errors %}<i class="fas fa-exclamation-circle"></i> {{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-info btn-lg") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3">
+                <a href="{{ url_for('auth.reset_password') }}" class="text-info"><i class="fas fa-arrow-left"></i> Solicitar nuevo código</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

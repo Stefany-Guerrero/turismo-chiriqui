@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperación de Contraseña</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f7f0; }
+        .container { max-width: 500px; margin: 20px auto; background: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 20px rgba(40,167,69,0.15); }
+        .header { background: linear-gradient(135deg, #dc3545, #ff6b6b); padding: 25px; text-align: center; color: #fff; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px; }
+        .code-box { background: #fff5f5; border: 2px dashed #dc3545; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0; }
+        .code { font-size: 36px; font-weight: bold; color: #dc3545; letter-spacing: 8px; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #6c757d; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div style="padding:20px;">
+        <div class="container">
+            <div class="header">
+                <div style="font-size:40px;">🔐</div>
+                <h1>Recuperar Contraseña</h1>
+            </div>
+            <div class="content">
+                <h2>Hola, {{ nombre }}</h2>
+                <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+                <div class="code-box">
+                    <p style="margin:0;font-size:14px;color:#666;">Tu código es:</p>
+                    <span class="code">{{ codigo }}</span>
+                </div>
+                <p style="font-size:14px;color:#666;">
+                    <i class="fas fa-clock"></i> Este código expira en <strong>10 minutos</strong>.
+                </p>
+            </div>
+            <div class="footer">
+                <p>© 2026 Turismo Chiriquí, S.A.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

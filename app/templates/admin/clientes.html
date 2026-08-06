@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - Turismo Chiriquí{% endblock %}
+
+{% block page_title %}Gestión de Clientes{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold" style="color: #0d5c2e;">
+            <i class="fas fa-users me-2"></i> Todos los Clientes
+        </h6>
+        <span class="badge bg-success fs-6">{{ clientes|length }} registrados</span>
+    </div>
+    <div class="card-body p-0">
+        {% if clientes %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Usuario</th>
+                        <th>Estado</th>
+                        <th>Reservas</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>#{{ cliente.id }}</td>
+                        <td class="fw-medium">{{ cliente.nombre }}</td>
+                        <td><a href="mailto:{{ cliente.email }}">{{ cliente.email }}</a></td>
+                        <td>{{ cliente.telefono or '—' }}</td>
+                        <td>
+                            {% if cliente.usuario %}
+                                <span class="badge bg-info">{{ cliente.usuario.username }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cliente.usuario and cliente.usuario.activo %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ cliente.reservas|length }}</span>
+                        </td>
+                        <td><small class="text-muted">{{ cliente.fecha_creacion.strftime('%d/%m/%Y') }}</small></td>
+                        <td>
+                            <a href="{{ url_for('auth.editar_cliente', id=cliente.id) }}" class="btn btn-warning btn-sm" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ url_for('auth.eliminar_cliente', id=cliente.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar cliente {{ cliente.nombre }}?');">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted my-4">
+            <i class="fas fa-info-circle me-2"></i> No hay clientes registrados.
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

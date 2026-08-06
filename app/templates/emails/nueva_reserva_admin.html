@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Reserva - Turismo Chiriquí</title>
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background: #e3f2fd;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 10px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+
+                    <!-- HEADER -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #1a237e, #283593, #3949ab); padding: 28px 30px 22px; text-align: center;">
+                            <div style="font-size: 12px; color: #9fa8da; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 6px;">Panel de Administración</div>
+                            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800;">🔔 NUEVA RESERVA</h1>
+                            <p style="color: #c5cae9; margin: 4px 0 0; font-size: 13px;">Se ha procesado un pago en la plataforma</p>
+                        </td>
+                    </tr>
+
+                    <!-- STATUS -->
+                    <tr>
+                        <td align="center" style="padding: 0 30px;">
+                            <div style="display: inline-block; background: #e8f5e9; border: 2px solid #43a047; border-radius: 20px; padding: 6px 24px; margin-top: -16px;">
+                                <span style="color: #2e7d32; font-weight: 700; font-size: 13px;">✅ PAGO CONFIRMADO</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- RESERVATION CARD -->
+                    <tr>
+                        <td style="padding: 24px 30px 10px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #e8eaf6; border-radius: 12px; overflow: hidden;">
+
+                                <!-- TOUR BANNER -->
+                                <tr>
+                                    <td style="background: linear-gradient(135deg, #283593, #5c6bc0); padding: 16px 20px;">
+                                        <span style="display: inline-block; background: rgba(255,255,255,0.2); color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase;">{{ tour_categoria }}</span>
+                                        <h3 style="color: #ffffff; margin: 6px 0 0; font-size: 18px;">{{ tour }}</h3>
+                                        {% if incluye_tour %}
+                                        <div style="color: #c5cae9; font-size: 10px; margin-top: 4px; line-height: 1.4;">{{ incluye_tour[:200] }}{% if incluye_tour|length > 200 %}...{% endif %}</div>
+                                        {% endif %}
+                                        {% if transporte_info %}
+                                        <div style="color: #ffcc02; font-size: 10px; margin-top: 4px;">{{ transporte_info }}</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- INFO GRID -->
+                                <tr>
+                                    <td style="padding: 16px 20px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td width="50%" style="padding: 4px 8px 4px 0; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Reserva</div>
+                                                    <div style="color: #1a237e; font-size: 15px; font-weight: 800;">#{{ reserva_id }}</div>
+                                                </td>
+                                                <td width="50%" style="padding: 4px 0 4px 8px; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Transacción</div>
+                                                    <div style="color: #333; font-size: 12px; font-weight: 600; font-family: 'Courier New', monospace;">{{ transaccion }}</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 4px 8px 4px 0; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Fecha del tour</div>
+                                                    <div style="color: #333; font-size: 14px; font-weight: 700;">{{ fecha }}</div>
+                                                    {% if fecha_fin %}
+                                                    <div style="color: #666; font-size: 11px;">al {{ fecha_fin }}</div>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="padding: 4px 0 4px 8px; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Personas</div>
+                                                    <div style="color: #333; font-size: 14px; font-weight: 700;">{{ personas }}</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- DASHED DIVIDER -->
+                                <tr>
+                                    <td style="padding: 0 20px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="border-top: 2px dashed #e0e0e0; height: 1px;"></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- PAYMENT -->
+                                <tr>
+                                    <td style="padding: 12px 20px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            {% if subtotal %}
+                                            <tr>
+                                                <td style="color: #666; font-size: 12px; padding: 2px 0;">Subtotal</td>
+                                                <td style="text-align: right; color: #333; font-size: 12px; padding: 2px 0;">{{ subtotal }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if itbms %}
+                                            <tr>
+                                                <td style="color: #666; font-size: 12px; padding: 2px 0;">ITBMS</td>
+                                                <td style="text-align: right; color: #333; font-size: 12px; padding: 2px 0;">{{ itbms }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            <tr>
+                                                <td style="border-top: 1px solid #e8eaf6; padding: 6px 0 2px; font-weight: 700; color: #1a237e; font-size: 16px;">Total</td>
+                                                <td style="border-top: 1px solid #e8eaf6; text-align: right; padding: 6px 0 2px; font-weight: 800; color: #283593; font-size: 18px;">{{ total }}</td>
+                                            </tr>
+                                            {% if tipo_tarjeta and ultimos_digitos %}
+                                            <tr>
+                                                <td colspan="2" style="padding: 4px 0 0; color: #999; font-size: 10px;">
+                                                    {{ tipo_tarjeta|upper }} · terminada en {{ ultimos_digitos }}
+                                                </td>
+                                            </tr>
+                                            {% elif metodo_pago == 'yappy' %}
+                                            <tr>
+                                                <td colspan="2" style="padding: 4px 0 0; color: #999; font-size: 10px;">
+                                                    Yappy · Comprobante adjunto
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- CLIENT INFO -->
+                    <tr>
+                        <td style="padding: 8px 30px 4px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; border-radius: 8px; padding: 14px 18px;">
+                                <tr>
+                                    <td style="color: #333; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; padding-bottom: 8px;">👤 Datos del Cliente</td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #333; font-size: 14px; font-weight: 600; padding: 1px 0;">{{ cliente_nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #666; font-size: 13px; padding: 1px 0;">{{ cliente_email }}</td>
+                                </tr>
+                                {% if cliente_telefono %}
+                                <tr>
+                                    <td style="color: #666; font-size: 13px; padding: 1px 0;">{{ cliente_telefono }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="background: #e8eaf6; padding: 20px 30px; text-align: center;">
+                            <p style="color: #283593; font-weight: 700; margin: 0 0 2px; font-size: 12px;">Turismo Chiriquí · Panel Administrativo</p>
+                            <p style="color: #888; font-size: 10px; margin: 0;">Reserva #{{ reserva_id }} · {{ transaccion }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

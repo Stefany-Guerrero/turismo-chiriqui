@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Solicitudes - Turismo Chiriquí{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-clipboard-list text-warning"></i> Solicitudes Personalizadas
+        </h1>
+        <span class="badge bg-warning text-dark fs-5">{{ solicitudes|length }} total</span>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pendientes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pendientes }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-clock fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">En revisión</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ en_proceso }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-search fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Cotizadas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cotizadas }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-calculator fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Aprobadas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ aprobadas }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rechazadas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ rechazadas }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-times-circle fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Todas las Solicitudes</h6>
+        </div>
+        <div class="card-body">
+            {% if solicitudes %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Duración</th>
+                            <th>Personas</th>
+                            <th>Destino</th>
+                            <th>Presupuesto</th>
+                            <th>Estado</th>
+                            <th>Recibida</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes %}
+                        <tr>
+                            <td>#{{ solicitud.id }}</td>
+                            <td>
+                                <strong>{{ solicitud.cliente.usuario.nombre_completo }}</strong><br>
+                                <small class="text-muted">{{ solicitud.cliente.usuario.email }}</small>
+                            </td>
+                            <td>{{ solicitud.duracion_texto() }}</td>
+                            <td>{{ solicitud.numero_personas }}</td>
+                            <td>{{ solicitud.destino_preferido or '—' }}</td>
+                            <td>{% if solicitud.presupuesto_estimado %}B/.{{ "%.2f"|format(solicitud.presupuesto_estimado) }}{% else %}—{% endif %}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if solicitud.estado == 'pendiente' %}bg-warning
+                                    {% elif solicitud.estado == 'en_proceso' %}bg-info
+                                    {% elif solicitud.estado == 'cotizada' %}bg-primary
+                                    {% elif solicitud.estado == 'aprobada' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {% if solicitud.estado == 'en_proceso' %}En revisión
+                                    {% else %}{{ solicitud.estado|replace('_', ' ')|capitalize }}{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ solicitud.fecha_creacion|local_datetime('%d/%m/%Y %I:%M %p') }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                        data-bs-target="#modalSolicitud{{ solicitud.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay solicitudes registradas</h5>
+                <p class="text-muted">Las solicitudes aparecerán aquí cuando los clientes las creen.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+    {% for solicitud in solicitudes %}
+    <div class="modal fade" id="modalSolicitud{{ solicitud.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-clipboard-list text-warning"></i> 
+                                            Solicitud #{{ solicitud.id }}
+                                            <span class="badge ms-2
+                                                {% if solicitud.estado == 'pendiente' %}bg-warning
+                                                {% elif solicitud.estado == 'en_proceso' %}bg-info
+                                                {% elif solicitud.estado == 'cotizada' %}bg-primary
+                                                {% elif solicitud.estado == 'aprobada' %}bg-success
+                                                {% else %}bg-danger{% endif %}">
+                                                {% if solicitud.estado == 'en_proceso' %}En revisión
+                                                {% elif solicitud.estado == 'pendiente' %}Pendiente
+                                                {% elif solicitud.estado == 'cotizada' %}Cotizada
+                                                {% elif solicitud.estado == 'aprobada' %}Aprobada
+                                                {% elif solicitud.estado == 'rechazada' %}Rechazada
+                                                {% else %}{{ solicitud.estado|replace('_', ' ')|capitalize }}{% endif %}
+                                            </span>
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-user text-primary"></i> Información del Cliente</h6>
+                                                <hr>
+                                                <p><strong>Nombre:</strong> {{ solicitud.cliente.usuario.nombre_completo }}</p>
+                                                <p><strong>Email:</strong> <a href="mailto:{{ solicitud.cliente.usuario.email }}">{{ solicitud.cliente.usuario.email }}</a></p>
+                                                <p><strong>Teléfono:</strong> 
+                                                    {% if solicitud.cliente.telefono %}
+                                                        <a href="tel:{{ solicitud.cliente.telefono }}" class="text-decoration-none fw-bold">{{ solicitud.cliente.telefono }}</a>
+                                                    {% else %}
+                                                        <span class="text-muted">No especificado</span>
+                                                    {% endif %}
+                                                </p>
+                                                <p><strong>Contacto:</strong> 
+                                                    <a href="mailto:{{ solicitud.cliente.usuario.email }}" class="text-decoration-none">{{ solicitud.cliente.usuario.email }}</a>
+                                                </p>
+                                                <p><strong>Solicitud enviada:</strong> {{ solicitud.fecha_creacion|local_datetime('%d/%m/%Y %I:%M %p') }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-map-marked-alt text-success"></i> Detalles del Viaje</h6>
+                                                <hr>
+                                                <p><strong>Duración:</strong> {{ solicitud.duracion_texto() }}</p>
+                                                <p><strong>Fecha llegada:</strong> {{ solicitud.fecha_gira.strftime('%d/%m/%Y') }}</p>
+                                                <p><strong>Fecha salida:</strong> {{ solicitud.fecha_fin.strftime('%d/%m/%Y') if solicitud.fecha_fin else '—' }}</p>
+                                                <p><strong>Personas:</strong> {{ solicitud.numero_personas }}</p>
+                                                <p><strong>Destino preferido:</strong> {{ solicitud.destino_preferido or 'No especificado' }}</p>
+                                                <p><strong>Lugar de recogida:</strong> {{ solicitud.lugar_recogida or 'No especificado' }}</p>
+                                                <p><strong>Lugares a visitar:</strong> {{ solicitud.lugares_visitar or 'No especificado' }}</p>
+                                                <p><strong>Presupuesto:</strong> 
+                                                    {% if solicitud.presupuesto_estimado %}
+                                                        B/.{{ "%.2f"|format(solicitud.presupuesto_estimado) }}
+                                                        {% if solicitud.presupuesto_tipo %}({{ solicitud.presupuesto_tipo|replace('_', ' ') }}){% endif %}
+                                                    {% else %}No especificado{% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-hotel text-info"></i> Alojamiento</h6>
+                                                <hr>
+                                                <p><strong>Tipo:</strong> {{ solicitud.alojamiento_nombre() }}</p>
+                                                <p><strong>Hospedaje:</strong> {{ 'Sí' if solicitud.hospedaje else 'No' }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-truck text-secondary"></i> Transporte</h6>
+                                                <hr>
+                                                <p><strong>Transporte:</strong> {{ solicitud.transporte_nombre() }}</p>
+                                                <p><strong>Alimentación:</strong> {{ solicitud.alimentacion_nombre() }}</p>
+                                                <p><strong>Guía turístico:</strong> {{ 'Sí' if solicitud.guia else 'No' }}</p>
+                                            </div>
+                                        </div>
+
+                                        {% if solicitud.observaciones %}
+                                        <div class="mt-3">
+                                            <h6><i class="fas fa-comment text-warning"></i> Observaciones del cliente</h6>
+                                            <hr>
+                                            <p>{{ solicitud.observaciones }}</p>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if solicitud.motivo_rechazo %}
+                                        <div class="mt-3">
+                                            <h6><i class="fas fa-exclamation-triangle text-danger"></i> Motivo de rechazo</h6>
+                                            <hr>
+                                            <p class="text-danger">{{ solicitud.motivo_rechazo }}</p>
+                                        </div>
+                                        {% endif %}
+
+                                        <hr>
+
+                                        {% if solicitud.cotizacion and solicitud.cotizacion_visible() %}
+                                        <div class="alert alert-success">
+                                            <h6 class="mb-0"><i class="fas fa-dollar-sign"></i> Cotización actual: <strong>B/.{{ "%.2f"|format(solicitud.cotizacion) }}</strong></h6>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- TOURS SUGERIDOS -->
+                                        {% set sugeridos = solicitud.get_suggested_services() %}
+                                        {% if sugeridos %}
+                                        <div class="mt-3 mb-3">
+                                            <h6><i class="fas fa-star text-warning"></i> Tours sugeridos <small class="text-muted">(basado en la solicitud del cliente)</small></h6>
+                                            <hr>
+                                            <div class="row">
+                                                {% for score, s in sugeridos %}
+                                                <div class="col-md-6 mb-2">
+                                                    <div class="card border-0 shadow-sm h-100">
+                                                        <div class="card-body p-3">
+                                                            <div class="d-flex justify-content-between align-items-start">
+                                                                <div>
+                                                                    <h6 class="mb-1 fw-bold" style="font-size: 14px;">{{ s.nombre }}</h6>
+                                                                    <small class="text-muted">{{ s.destino or '' }} · {{ s.duracion_cantidad }} {{ s.duracion_unidad }}</small>
+                                                                </div>
+                                                                <span class="badge bg-warning text-dark ms-2" style="font-size: 11px;">{{ score }} pts</span>
+                                                            </div>
+                                                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                                                <span class="fw-bold" style="color: #1b5e20;">B/.{{ "%.2f"|format(s.precio) }}</span>
+                                                                <small class="text-muted">{{ s.cupos_disponibles or s.cupo_maximo }} cupos</small>
+                                                            </div>
+                                                            <button type="button" class="btn btn-sm btn-outline-success mt-2 w-100 btn-select-tour"
+                                                                     data-solicitud="{{ solicitud.id }}"
+                                                                     data-servicio="{{ s.id }}"
+                                                                     data-nombre="{{ s.nombre }}"
+                                                                     data-precio="{{ s.precio }}"
+                                                                     data-personas="{{ solicitud.numero_personas }}">
+                                                                <i class="fas fa-check"></i> Seleccionar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="mt-2 text-center">
+                                                <a href="{{ url_for('servicios.index') }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-search"></i> Ver todos los servicios
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="mt-3 mb-3">
+                                            <h6><i class="fas fa-star text-warning"></i> Tours sugeridos</h6>
+                                            <hr>
+                                            <div class="alert alert-light text-muted text-center py-3">
+                                                <i class="fas fa-search fa-2x mb-2 d-block"></i>
+                                                No se encontraron tours que coincidan con esta solicitud.
+                                                <a href="{{ url_for('servicios.index') }}" target="_blank" class="d-block mt-2 btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-search"></i> Buscar en servicios
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- ADMIN ACTIONS -->
+                                        <form method="POST" action="{{ url_for('solicitudes.actualizar_solicitud', id=solicitud.id) }}" id="formSolicitud{{ solicitud.id }}">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <label class="form-label"><i class="fas fa-tag"></i> Estado</label>
+                                                    <select name="estado" class="form-select estado-select" data-solicitud-id="{{ solicitud.id }}">
+                                                        <option value="pendiente" {% if solicitud.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                                        <option value="en_proceso" {% if solicitud.estado == 'en_proceso' %}selected{% endif %}>En revisión</option>
+                                                        <option value="cotizada" {% if solicitud.estado == 'cotizada' %}selected{% endif %}>Cotizada</option>
+                                                        <option value="aprobada" {% if solicitud.estado == 'aprobada' %}selected{% endif %}>Aprobada</option>
+                                                        <option value="rechazada" {% if solicitud.estado == 'rechazada' %}selected{% endif %}>Rechazada</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label"><i class="fas fa-dollar-sign"></i> Cotización (B/.)</label>
+                                                    <input type="number" name="cotizacion" class="form-control" step="0.01" 
+                                                           value="{{ solicitud.cotizacion if solicitud.cotizacion else '' }}" 
+                                                           placeholder="0.00" id="precioPP{{ solicitud.id }}">
+                                                    <small class="text-muted">Total para {{ solicitud.numero_personas }} persona(s)</small>
+                                                </div>
+                                                <div class="col-md-12 mt-2">
+                                                    <label class="form-label"><i class="fas fa-pen"></i> Nota / Mensaje al cliente</label>
+                                                    <textarea name="observaciones" class="form-control" rows="2" 
+                                                              placeholder="Agregar comentarios sobre esta solicitud...">{{ solicitud.observaciones or '' }}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <!-- MOTIVO DE RECHAZO (obligatorio si se rechaza) -->
+                                            <div id="motivoRechazo{{ solicitud.id }}" class="mt-2" style="display: none;">
+                                                <label class="form-label text-danger fw-bold"><i class="fas fa-exclamation-circle"></i> Motivo del rechazo <span class="text-danger">*</span></label>
+                                                <textarea name="motivo_rechazo" class="form-control" rows="2" 
+                                                          placeholder="Ej: No contamos con disponibilidad, el presupuesto es insuficiente, no ofrecemos ese destino...">{{ solicitud.motivo_rechazo or '' }}</textarea>
+                                                <small class="text-danger">Es obligatorio indicar el motivo para rechazar una solicitud.</small>
+                                            </div>
+
+                                            <div class="mt-3 d-flex gap-2">
+                                                <button type="submit" name="accion" value="guardar" class="btn btn-primary">
+                                                    <i class="fas fa-save"></i> Guardar cambios
+                                                </button>
+                                                <button type="submit" name="accion" value="cotizar" class="btn btn-success">
+                                                    <i class="fas fa-calculator"></i> Enviar cotización
+                                                </button>
+                                                <button type="submit" name="accion" value="rechazar" class="btn btn-danger" id="btnRechazar{{ solicitud.id }}">
+                                                    <i class="fas fa-times-circle"></i> Rechazar solicitud
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('input', function(e) {
+    if (e.target.id && e.target.id.startsWith('precioPP')) {
+    }
+});
+
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-select-tour');
+    if (!btn) return;
+    const solId = btn.dataset.solicitud;
+    const nombre = btn.dataset.nombre;
+    const precio = parseFloat(btn.dataset.precio);
+    const personas = parseInt(btn.dataset.personas) || 1;
+    const total = precio * personas;
+    const form = document.getElementById('formSolicitud' + solId);
+    if (!form) return;
+    const input = form.querySelector('input[name="cotizacion"]');
+    input.value = (precio * personas).toFixed(2);
+    form.querySelector('select[name="estado"]').value = 'cotizada';
+    Swal.fire({
+        icon: 'success',
+        title: 'Tour seleccionado',
+        html: 'Has seleccionado el tour <strong>"' + nombre + '"</strong>.<br>' +
+              'Precio: <strong>B/.' + precio.toFixed(2) + ' × ' + personas + ' persona(s) = B/.' + total.toFixed(2) + '</strong>.<br>' +
+              'La solicitud cambi\u00f3 al estado <strong>Cotizada</strong>.<br>' +
+              'Puedes modificar el precio antes de enviarlo al cliente.',
+        confirmButtonColor: '#198754',
+        confirmButtonText: 'Aceptar'
+    });
+});
+
+document.querySelectorAll('.estado-select').forEach(function(sel) {
+    sel.addEventListener('change', function() {
+        const id = this.dataset.solicitudId;
+        const divRechazo = document.getElementById('motivoRechazo' + id);
+        if (this.value === 'rechazada') {
+            divRechazo.style.display = 'block';
+        } else {
+            divRechazo.style.display = 'none';
+        }
+    });
+    // Trigger on load to show if already rechazada
+    const event = new Event('change');
+    sel.dispatchEvent(event);
+});
+
+document.querySelectorAll('button[name="accion"][value="rechazar"]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        const form = this.closest('form');
+        const motivo = form.querySelector('textarea[name="motivo_rechazo"]');
+        if (!motivo.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Motivo requerido',
+                text: 'Debes escribir el motivo del rechazo antes de continuar.',
+                confirmButtonColor: '#198754',
+                confirmButtonText: 'Entendido'
+            });
+            motivo.focus();
+        }
+    });
+});
+</script>
+{% endblock %}

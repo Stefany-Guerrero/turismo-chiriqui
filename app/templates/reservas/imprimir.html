@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Itinerario de Viaje</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 12px; line-height: 1.5; color: #222;
+      background: #fff; margin: 0; padding: 10mm 8mm; width: 100%;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .page { width: 100%; max-width: 100%; }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 14px; border-bottom: 3px solid #1b5e20; margin-bottom: 18px;
+    }
+    .header .left { display: flex; align-items: center; gap: 14px; }
+    .header .logo { max-height: 55px; }
+    .header .company h1 { color: #1b5e20; font-size: 24px; font-weight: 800; letter-spacing: 2px; margin: 0; }
+    .header .company .sub { color: #555; font-size: 11px; }
+    .header .right { text-align: right; }
+    .header .right .conf { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #999; }
+    .header .right .code { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; color: #1b5e20; }
+
+    /* Confirmation banner */
+    .conf-banner {
+      background: #f0f7f0; border: 1px solid #c8e6c9; border-radius: 8px;
+      padding: 16px 20px; margin-bottom: 18px; text-align: center;
+    }
+    .conf-banner .badge {
+      display: inline-block; background: #1b5e20; color: #fff;
+      padding: 4px 28px; border-radius: 20px; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 4px;
+    }
+    .conf-banner .title { font-size: 20px; font-weight: 700; color: #1b5e20; margin: 4px 0; }
+    .conf-banner .detail { font-size: 11px; color: #666; }
+
+    /* Section titles */
+    .section-title {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+      color: #999; margin-bottom: 8px; padding-bottom: 4px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* Info grid */
+    .info-grid { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .info-grid td { padding: 4px 12px 4px 0; vertical-align: top; width: 50%; }
+    .info-grid .lbl { font-size: 8px; text-transform: uppercase; letter-spacing: 1.2px; color: #999; }
+    .info-grid .val { font-weight: 600; color: #222; font-size: 14px; }
+
+    /* Tour card */
+    .tour-card {
+      background: #f7faf7; border: 1px solid #c8e6c9; border-radius: 8px;
+      padding: 16px 18px; margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+    .tour-card .row { display: flex; flex-wrap: wrap; gap: 10px 0; }
+    .tour-card .col { flex: 1; min-width: 120px; padding: 0 8px; }
+    .tour-card .lbl { font-size: 8px; text-transform: uppercase; letter-spacing: 1.2px; color: #888; }
+    .tour-card .val { font-weight: 700; color: #1b5e20; font-size: 15px; }
+
+    /* Itinerary */
+    .itinerary { margin-bottom: 16px; page-break-inside: avoid; }
+    .itinerary .day {
+      border-left: 3px solid #1b5e20; padding: 8px 0 8px 16px; margin-bottom: 10px;
+    }
+    .itinerary .day .day-title { font-weight: 700; color: #1b5e20; font-size: 14px; }
+    .itinerary .day .day-desc { font-size: 12px; color: #444; margin-top: 2px; white-space: pre-line; }
+
+    /* Includes / Excludes */
+    .incl-excl { width: 100%; border-collapse: collapse; margin-bottom: 16px; page-break-inside: avoid; }
+    .incl-excl td { width: 50%; vertical-align: top; padding: 0 6px; }
+    .incl-excl .box {
+      background: #f7faf7; border: 1px solid #c8e6c9; border-radius: 8px; padding: 12px 14px;
+    }
+    .incl-excl .box.no { background: #fef7f7; border-color: #f5c6cb; }
+    .incl-excl .box .tit { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 6px; }
+    .incl-excl .box .list { font-size: 11px; color: #333; line-height: 1.6; white-space: pre-line; }
+    .incl-excl .box .list .check { color: #2e7d32; font-weight: 700; }
+    .incl-excl .box .list .cross { color: #c62828; }
+
+    /* Pricing table */
+    .pricing { width: 100%; border-collapse: collapse; margin-bottom: 14px; page-break-inside: avoid; }
+    .pricing th {
+      background: #1b5e20; color: #fff; padding: 8px 14px; text-align: left;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
+    }
+    .pricing th.right { text-align: right; }
+    .pricing th.center { text-align: center; }
+    .pricing td { padding: 8px 14px; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
+    .pricing td.right { text-align: right; }
+    .pricing td.center { text-align: center; }
+    .pricing .sub td { color: #666; border-bottom: none; font-size: 11px; }
+    .pricing .total td {
+      border-top: 3px solid #1b5e20; font-weight: 700; font-size: 15px; padding-top: 10px;
+    }
+    .pricing .total td:last-child { color: #1b5e20; font-size: 17px; }
+
+    /* Payment status */
+    .pay-status {
+      text-align: center; padding: 12px; margin-bottom: 16px;
+      background: #f0f7f0; border-radius: 8px; page-break-inside: avoid;
+    }
+    .pay-status .paid {
+      display: inline-block; background: #1b5e20; color: #fff;
+      padding: 4px 24px; border-radius: 14px; font-size: 10px;
+      letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700;
+    }
+    .pay-status .detail { font-size: 11px; color: #555; margin-top: 4px; }
+
+    /* Notes */
+    .notes {
+      background: #fffbe6; border: 1px solid #ffe082; border-radius: 8px;
+      padding: 12px 16px; margin-bottom: 16px; page-break-inside: avoid;
+    }
+    .notes .tit { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: #b8860b; margin-bottom: 6px; }
+    .notes .txt { font-size: 11px; color: #555; line-height: 1.6; white-space: pre-line; }
+
+    /* Footer */
+    .footer {
+      text-align: center; padding-top: 12px; border-top: 1px solid #ddd;
+      font-size: 10px; color: #aaa; margin-top: 10px;
+    }
+    .footer .thanks { color: #1b5e20; font-weight: 700; font-size: 12px; margin-top: 6px; }
+
+    .no-print { display: none; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 12px; }
+      .conf-banner { background: #f0f7f0 !important; border-color: #c8e6c9 !important; }
+      .tour-card { background: #f7faf7 !important; border-color: #c8e6c9 !important; }
+      .pricing th { background: #1b5e20 !important; color: #fff !important; }
+      .pay-status .paid { background: #1b5e20 !important; color: #fff !important; }
+      .header { border-bottom-color: #1b5e20 !important; }
+      .notes { background: #fffbe6 !important; border-color: #ffe082 !important; }
+      .incl-excl .box { background: #f7faf7 !important; border-color: #c8e6c9 !important; }
+      .incl-excl .box.no { background: #fef7f7 !important; border-color: #f5c6cb !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="left">
+        <img src="file:///{{ url_for('static', filename='img/logo.png') }}" class="logo" alt="Turismo Chiriquí" onerror="this.style.display='none'">
+        <div class="company">
+          <h1>TURISMO CHIRIQUÍ</h1>
+          <div class="sub">David, Chiriquí · Panamá</div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="conf">Confirmación</div>
+        <div class="code">{{ reserva.codigo_transaccion or ('#' ~ reserva.id) }}</div>
+      </div>
+    </div>
+
+    <!-- CONFIRMATION BANNER -->
+    <div class="conf-banner">
+      <div class="badge">{{ 'Pagado' if reserva.total_pago and reserva.total_pago > 0 else 'Reservado' }}</div>
+      <div class="title">{{ reserva.servicio.nombre if reserva.servicio else 'Itinerario de Viaje' }}</div>
+      <div class="detail">
+        {{ reserva.servicio.destino if reserva.servicio else '' }}
+        {% if reserva.servicio and reserva.servicio.categoria_nombre %} · {{ reserva.servicio.categoria_nombre }}{% endif %}
+      </div>
+    </div>
+
+    <!-- GUEST + TRIP INFO -->
+    <table class="info-grid">
+      <tr>
+        <td>
+          <div class="lbl">Huésped</div>
+          <div class="val">{{ reserva.cliente.usuario.nombre_completo if reserva.cliente and reserva.cliente.usuario else '—' }}</div>
+          <div style="font-size: 11px; color: #666;">{{ reserva.cliente.usuario.email if reserva.cliente and reserva.cliente.usuario else '' }}</div>
+          {% if reserva.cliente and reserva.cliente.telefono %}
+          <div style="font-size: 11px; color: #666;">Tel: {{ reserva.cliente.telefono }}</div>
+          {% endif %}
+        </td>
+        <td>
+          <div class="lbl">Reserva</div>
+          <div class="val">#{{ reserva.id }}</div>
+          <div style="font-size: 11px; color: #666;">Emitida: {{ reserva.fecha_creacion|local_datetime('%d/%m/%Y %I:%M %p') }}</div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- TOUR DETAILS -->
+    <div class="section-title">Detalles del viaje</div>
+    <div class="tour-card">
+      <div class="row">
+        <div class="col">
+          <div class="lbl">Tour</div>
+          <div class="val">{{ reserva.servicio.nombre if reserva.servicio else '—' }}</div>
+        </div>
+        <div class="col">
+          <div class="lbl">Destino</div>
+          <div class="val">{{ reserva.servicio.destino if reserva.servicio else '—' }}</div>
+        </div>
+        <div class="col">
+          <div class="lbl">Inicio</div>
+          <div class="val">{{ reserva.fecha_gira.strftime('%d/%m/%Y') if reserva.fecha_gira else '—' }}</div>
+        </div>
+        <div class="col">
+          <div class="lbl">Fin</div>
+          <div class="val">{{ reserva.fecha_fin.strftime('%d/%m/%Y') if reserva.fecha_fin else '—' }}</div>
+        </div>
+        <div class="col">
+          <div class="lbl">Viajeros</div>
+          <div class="val">{{ reserva.numero_personas }}</div>
+        </div>
+        <div class="col">
+          <div class="lbl">Transporte</div>
+          <div class="val" style="font-size: 12px;">{{ reserva.transporte_nombre() if reserva.transporte else ('Incluido' if reserva.servicio and reserva.servicio.incluye_transporte else '—') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITINERARY -->
+    {% if reserva.servicio and reserva.servicio.itinerario %}
+    <div class="section-title">Itinerario</div>
+    <div class="itinerary">
+      {% set days = reserva.servicio.itinerario.split('\n') %}
+      {% for line in days %}
+        {% if line.strip() %}
+        <div class="day">
+          {% if line.startswith('Día') or line.startswith('DIA') or line[0].isdigit() %}
+          <div class="day-title">{{ line.strip() }}</div>
+          {% else %}
+          <div class="day-desc">{{ line.strip() }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- INCLUDES / EXCLUDES -->
+    {% if reserva.servicio %}
+    <table class="incl-excl">
+      <tr>
+        <td>
+          <div class="box">
+            <div class="tit">&#10003; Incluye</div>
+            <div class="list">
+              {% if reserva.servicio.incluye_guia %}<span class="check">&#10003;</span> Guía turístico<br>{% endif %}
+              {% if reserva.servicio.incluye_alimentacion %}<span class="check">&#10003;</span> Alimentación<br>{% endif %}
+              {% if reserva.servicio.incluye_hospedaje %}<span class="check">&#10003;</span> Hospedaje<br>{% endif %}
+              {% if reserva.servicio.incluye_seguro %}<span class="check">&#10003;</span> Seguro de viaje<br>{% endif %}
+              {% if reserva.servicio.incluye_entradas %}<span class="check">&#10003;</span> Entradas y tarifas<br>{% endif %}
+              {% if reserva.servicio.incluye_equipo %}<span class="check">&#10003;</span> Equipo especial<br>{% endif %}
+              {% if reserva.servicio.incluye_transporte %}<span class="check">&#10003;</span> Transporte<br>{% endif %}
+              {% if reserva.servicio.incluye and reserva.servicio.incluye|length > 0 %}
+              <br>{{ reserva.servicio.incluye }}
+              {% endif %}
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="box no">
+            <div class="tit">&#10007; No incluye</div>
+            <div class="list">
+              {% if reserva.servicio.no_incluye %}
+              {{ reserva.servicio.no_incluye }}
+              {% else %}
+              <span style="color: #999;">No especificado</span>
+              {% endif %}
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+    {% endif %}
+
+    <!-- PRICING -->
+    <div class="section-title">Resumen de pago</div>
+    <table class="pricing">
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th class="center" width="70">Cant.</th>
+          <th class="right" width="110">Precio unit.</th>
+          <th class="right" width="110">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if reserva.servicio %}
+        <tr>
+          <td><strong>{{ reserva.servicio.nombre }}</strong></td>
+          <td class="center">{{ reserva.numero_personas }}</td>
+          <td class="right">B/.{{ "%.2f"|format(reserva.subtotal / reserva.numero_personas) if reserva.subtotal and reserva.numero_personas else '0.00' }}</td>
+          <td class="right">B/.{{ "%.2f"|format(reserva.subtotal) if reserva.subtotal else '0.00' }}</td>
+        </tr>
+        {% endif %}
+        {% if reserva.subtotal and reserva.subtotal > 0 %}
+        <tr class="sub"><td colspan="3" class="right" style="color: #666;">Subtotal</td><td class="right">B/.{{ "%.2f"|format(reserva.subtotal) }}</td></tr>
+        {% endif %}
+        {% if reserva.itbms and reserva.itbms > 0 %}
+        <tr class="sub"><td colspan="3" class="right" style="color: #666;">ITBMS (7%)</td><td class="right">B/.{{ "%.2f"|format(reserva.itbms) }}</td></tr>
+        {% endif %}
+        <tr class="total">
+          <td colspan="3" class="right">Total pagado</td>
+          <td class="right">B/.{{ "%.2f"|format(reserva.total_pago) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- PAYMENT STATUS -->
+    <div class="pay-status">
+      {% if reserva.total_pago and reserva.total_pago > 0 %}
+      <div class="paid">&#10004; Pagado</div>
+      {% if reserva.metodo_pago == 'tarjeta' and reserva.tipo_tarjeta %}
+      <div class="detail">Pagado con {{ reserva.tipo_tarjeta|capitalize }} terminada en {{ reserva.ultimos_digitos }}</div>
+      {% elif reserva.metodo_pago == 'yappy' %}
+      <div class="detail">Pagado por Yappy</div>
+      {% endif %}
+      {% else %}
+      <div class="detail" style="color: #e65100;">Pendiente de pago</div>
+      {% endif %}
+    </div>
+
+    <!-- NOTES -->
+    <div class="notes">
+      <div class="tit">Información importante</div>
+      <div class="txt">
+        • Presenta esta confirmación al momento del check-in.<br>
+        • LLegar 15 minutos antes de la hora de inicio.<br>
+        • Usar ropa cómoda, zapatos para caminar, protector solar y repelente.<br>
+        • Política de cancelación: hasta 48 horas antes sin cargo.<br>
+        • Para cambios o cancelaciones, contáctanos al (507) XXX-XXXX o email: info@turismochiriqui.com
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <p>Turismo Chiriquí S.A. · David, Chiriquí, Panamá</p>
+      <p>Tel: (507) XXX-XXXX · Email: info@turismochiriqui.com · Código: {{ reserva.codigo_transaccion or ('#' ~ reserva.id) }}</p>
+      <p class="thanks">¡Gracias por elegirnos. Que disfrutes tu viaje!</p>
+    </div>
+
+  </div>
+
+  <div class="no-print" style="text-align: center; margin-top: 30px;">
+    <button onclick="window.print()" style="padding: 12px 40px; font-size: 16px; cursor: pointer; border: none; background: #2e7d32; color: #fff; border-radius: 8px;">
+      🖨 Imprimir itinerario
+    </button>
+     
+    <button onclick="window.close()" style="padding: 12px 28px; font-size: 16px; cursor: pointer; border: 1px solid #999; background: #fff; color: #333; border-radius: 8px;">
+      Cerrar
+    </button>
+  </div>
+</body>
+</html>

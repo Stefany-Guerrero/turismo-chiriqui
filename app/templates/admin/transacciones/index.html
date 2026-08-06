@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Transacciones - Turismo Chiriquí{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Transacciones</h2>
+        <div>
+            <a href="?filtro=todas" class="btn btn-sm {% if filtro == 'todas' %}btn-primary{% else %}btn-outline-primary{% endif %}">Todas</a>
+            <a href="?filtro=pagadas" class="btn btn-sm {% if filtro == 'pagadas' %}btn-success{% else %}btn-outline-success{% endif %}">Pagadas</a>
+            <a href="?filtro=pendientes" class="btn btn-sm {% if filtro == 'pendientes' %}btn-warning{% else %}btn-outline-warning{% endif %}">Pendientes</a>
+            <a href="?filtro=canceladas" class="btn btn-sm {% if filtro == 'canceladas' %}btn-danger{% else %}btn-outline-danger{% endif %}">Canceladas</a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Total Transacciones</h6>
+                    <h2 class="text-primary">{{ transacciones|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Monto Total Cobrado</h6>
+                    <h2 class="text-success">B/.{{ "%.2f"|format(total_monto) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Filtro Activo</h6>
+                    <h2 class="text-info">{{ filtro|capitalize }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            {% if transacciones %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Tour</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transacciones %}
+                        <tr>
+                            <td><strong>{{ t.codigo_transaccion }}</strong></td>
+                            <td>{{ t.cliente.nombre if t.cliente else '—' }}</td>
+                            <td>{{ t.servicio.nombre if t.servicio else '—' }}</td>
+                            <td class="fw-bold">B/.{{ "%.2f"|format(t.total_pago or 0) }}</td>
+                            <td>
+                                {% if t.metodo_pago == 'yappy' %}
+                                    <span class="badge bg-info">Yappy</span>
+                                {% elif t.metodo_pago == 'tarjeta' %}
+                                    <span class="badge bg-primary">Tarjeta</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ t.metodo_pago or '—' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if t.estado == 'confirmada' %}
+                                    <span class="badge bg-success">Pagada</span>
+                                {% elif t.estado == 'pendiente_pago' %}
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% elif t.estado == 'cancelada' %}
+                                    <span class="badge bg-danger">Cancelada</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ t.estado }}</span>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ t.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</small></td>
+                            <td>
+                                <a href="{{ url_for('transacciones.detalle', id=t.id) }}" class="btn btn-info btn-sm" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted py-4">No hay transacciones con el filtro seleccionado.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
