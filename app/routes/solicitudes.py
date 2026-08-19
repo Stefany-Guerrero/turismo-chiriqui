@@ -9,6 +9,7 @@ from app.models.servicio import Servicio
 from app.models.notificacion import Notificacion
 from app.models.usuario import Usuario
 from app.forms import SolicitudForm
+from app.utils.archivos import validar_archivo
 from datetime import datetime, date
 import os
 import json
@@ -77,7 +78,7 @@ def crear():
             
             # Email al admin
             try:
-                admin_email = current_app.config.get('ADMIN_EMAIL', 'itsdanhw14@gmail.com')
+                admin_email = current_app.config.get('ADMIN_EMAIL', 'proyectosprueba8@gmail.com')
                 transporte_label = {'vehiculo_propio': 'Vehículo propio', 'autobus': 'Autobús', 'transporte_empresa': 'Transporte del proveedor', 'avion': 'Avión', 'lancha': 'Lancha', 'alquiler_auto': 'Alquiler de auto', 'no_requiere': 'No requiere'}.get(form.transporte.data, form.transporte.data or '—')
                 msg = Message(
                     subject=f'Nueva solicitud #{solicitud.id} - {cliente.usuario.nombre_completo}',
@@ -123,7 +124,8 @@ def crear():
             
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al enviar la solicitud: {str(e)}', 'error')
+            current_app.logger.error(f'Error al enviar la solicitud: {e}')
+            flash('Error al enviar la solicitud. Intenta de nuevo.', 'error')
     
     return render_template('solicitudes/crear.html', form=form, viaje=viaje, today=date.today().isoformat())
 
@@ -135,8 +137,6 @@ def mis_solicitudes():
         flash('No tienes permiso para acceder.', 'error')
         return redirect(url_for('main.index'))
     
-    from app.utils.auto_complete import completar_solicitudes_vencidas
-    completar_solicitudes_vencidas()
     
     cliente = current_user.get_cliente()
     
@@ -271,13 +271,16 @@ def actualizar_solicitud(id):
             solicitud.observaciones = observaciones
         
         db.session.commit()
+        from app.utils.audit import registrar_auditoria
+        registrar_auditoria('GESTIONAR_SOLICITUD', 'Solicitud', solicitud.id, f'Solicitud #{solicitud.id}: estado -> {solicitud.estado}')
         
         if accion == 'guardar':
             flash(f'Solicitud #{id} actualizada a "{nuevo_estado}" exitosamente.', 'success')
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al actualizar la solicitud: {str(e)}', 'error')
+        current_app.logger.error(f'Error al actualizar la solicitud: {e}')
+        flash('Error al actualizar la solicitud. Intenta de nuevo.', 'error')
     
     return redirect(url_for('solicitudes.admin_solicitudes'))
 
@@ -299,10 +302,13 @@ def cambiar_estado_solicitud(id, estado):
             if estado != estado_anterior:
                 crear_notificacion_solicitud(solicitud, estado)
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('CAMBIAR_ESTADO_SOLICITUD', 'Solicitud', solicitud.id, f'Solicitud #{id}: estado -> {estado}')
             flash(f'Solicitud #{id} actualizada a "{estado}"', 'success')
         except Exception as e:
             db.session.rollback()
-            flash(f'Error: {str(e)}', 'error')
+            current_app.logger.error(f'Error: {e}')
+            flash('Error al procesar. Intenta de nuevo.', 'error')
     else:
         flash('Estado no válido.', 'error')
     
@@ -357,9 +363,6 @@ def marcar_todas_notificaciones_leidas():
 @login_required
 def detalle_solicitud(id):
     """Ver detalle de una solicitud específica"""
-    from app.utils.auto_complete import completar_solicitudes_vencidas
-    completar_solicitudes_vencidas()
-    
     solicitud = Reserva.query.get_or_404(id)
     
     if current_user.rol == 'cliente':
@@ -443,6 +446,10 @@ def confirmar_pago_solicitud(id):
         if comprobante_archivo.filename == '':
             flash('Debes seleccionar un archivo de comprobante.', 'error')
             return redirect(url_for('solicitudes.pagar_solicitud', id=id))
+        valido, mensaje = validar_archivo(comprobante_archivo)
+        if not valido:
+            flash(f'Comprobante inválido: {mensaje}', 'error')
+            return redirect(url_for('solicitudes.pagar_solicitud', id=id))
     else:
         telefono_contacto = request.form.get('telefono_contacto', '').strip()
         if not all([tipo_tarjeta, titular_tarjeta, numero_tarjeta]):
@@ -494,7 +501,9 @@ def confirmar_pago_solicitud(id):
                 'numero_personas': solicitud.numero_personas,
                 'comprobante': nombre_archivo
             }
-            ruta_json = os.path.join(current_app.root_path, 'static', 'comprobantes', f'transaccion_solicitud_{solicitud.id}_{codigo}.json')
+            json_dir = os.path.join(current_app.root_path, 'json_transacciones')
+            os.makedirs(json_dir, exist_ok=True)
+            ruta_json = os.path.join(json_dir, f'transaccion_solicitud_{solicitud.id}_{codigo}.json')
             with open(ruta_json, 'w', encoding='utf-8') as f:
                 json.dump(datos_json, f, ensure_ascii=False, indent=2)
             solicitud.datos_transaccion = json.dumps(datos_json, ensure_ascii=False)
@@ -532,5 +541,6 @@ def confirmar_pago_solicitud(id):
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al procesar el pago: {str(e)}', 'error')
+        current_app.logger.error(f'Error al procesar el pago: {e}')
+        flash('Error al procesar el pago. Intenta de nuevo.', 'error')
         return redirect(url_for('solicitudes.pagar_solicitud', id=id))

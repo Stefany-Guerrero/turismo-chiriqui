@@ -79,15 +79,6 @@ def index():
         tours = Servicio.query.filter(Servicio.activo == True).all()
         resultados = []
         
-        with open('/var/www/turismo_chiriqui/debug_planificador.log', 'a') as f:
-            f.write(f"=== PLANIFICADOR SEARCH ===\n")
-            f.write(f"tours activos: {len(tours)}\n")
-            f.write(f"fecha_inicio: {fecha_inicio}, fecha_fin: {fecha_fin}, dias: {dias}\n")
-            f.write(f"personas: {form.numero_personas.data}, experiencia: {form.experiencia.data}\n")
-            f.write(f"destino: {form.destino.data}, presupuesto: {form.presupuesto.data}\n")
-            for tour in tours:
-                f.write(f"  TOUR {tour.id}: {tour.nombre}, tipo={tour.tipo_experiencia}, prog={tour.tipo_programacion}, dias_op={tour.dias_operacion}, vig={tour.vigencia_inicio}-{tour.vigencia_fin}, cupo={tour.cupo_maximo}, precio={tour.precio}, activo={tour.activo}\n")
-        
         for tour in tours:
             dias_disponibles = 0
             d = fecha_inicio

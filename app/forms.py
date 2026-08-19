@@ -1,3 +1,4 @@
+import re
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, EmailField, TextAreaField, IntegerField, FloatField, SelectField, DateField, SelectMultipleField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange, Optional
@@ -10,6 +11,32 @@ def validar_presupuesto(form, field):
         if field.data > 100000:
             raise ValidationError(f'El presupuesto máximo es B/. 100,000.00 — ingresaste B/. {field.data:,.2f}, una cantidad demasiado elevada.')
 
+def validar_hora(form, field):
+    if field.data:
+        valor = str(field.data).strip()
+        if not re.fullmatch(r'([01]?\d|2[0-3]):[0-5]\d', valor):
+            raise ValidationError(f'Formato de hora inválido: "{field.data}". Usa HH:MM (ej: 08:30).')
+
+def validar_telefono(form, field):
+    if field.data:
+        valor = str(field.data).strip()
+        if not re.fullmatch(r'[\d\s()+-]{7,20}', valor):
+            raise ValidationError(f'Teléfono inválido: "{field.data}". Solo se permiten números, espacios, +, ( ) y - .')
+
+def validar_password_segura(form, field):
+    valor = field.data or ''
+    if len(valor) < 8:
+        raise ValidationError('La contraseña debe tener al menos 8 caracteres.')
+    if not re.search(r'[A-Z]', valor):
+        raise ValidationError('La contraseña debe contener al menos una letra mayúscula.')
+    if not re.search(r'[0-9]', valor):
+        raise ValidationError('La contraseña debe contener al menos un número.')
+
+def id_opcional(val):
+    if val in ('', None):
+        return None
+    return int(val)
+
 class LoginForm(FlaskForm):
     email = EmailField('Correo Electrónico', validators=[DataRequired(), Email()])
     password = PasswordField('Contraseña', validators=[DataRequired()])
@@ -20,8 +47,8 @@ class RegisterForm(FlaskForm):
     nombre_completo = StringField('Nombre Completo', validators=[DataRequired(), Length(min=3, max=100)])
     username = StringField('Usuario', validators=[DataRequired(), Length(min=3, max=50)])
     email = EmailField('Correo Electrónico', validators=[DataRequired(), Email()])
-    telefono = StringField('Teléfono', validators=[Length(max=20)])
-    password = PasswordField('Contraseña', validators=[DataRequired(), Length(min=6)])
+    telefono = StringField('Teléfono', validators=[Length(max=20), validar_telefono])
+    password = PasswordField('Contraseña', validators=[DataRequired(), Length(min=8), validar_password_segura])
     password_confirm = PasswordField('Confirmar Contraseña', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Crear Cuenta')
     
@@ -44,7 +71,7 @@ class VerifyCodeForm(FlaskForm):
     submit = SubmitField('Verificar Código')
 
 class NewPasswordForm(FlaskForm):
-    new_password = PasswordField('Nueva Contraseña', validators=[DataRequired(), Length(min=6)])
+    new_password = PasswordField('Nueva Contraseña', validators=[DataRequired(), Length(min=8), validar_password_segura])
     confirm_password = PasswordField('Confirmar Contraseña', validators=[DataRequired(), EqualTo('new_password')])
     submit = SubmitField('Cambiar Contraseña')
 
@@ -131,8 +158,28 @@ class ServicioForm(FlaskForm):
         if unidad == 'dias' and (valor < 1 or valor > 15):
             raise ValidationError('Para días, la cantidad debe estar entre 1 y 15')
     
-    hora_inicio = StringField('Hora de Inicio', validators=[DataRequired(), Length(max=10)])
-    hora_estimada_regreso = StringField('Hora Estimada de Regreso', validators=[DataRequired(), Length(max=10)])
+    def validate_hora_estimada_regreso(self, field):
+        if field.data and self.hora_inicio.data:
+            import datetime as _dt
+            try:
+                ini = _dt.datetime.strptime(self.hora_inicio.data.strip(), '%H:%M')
+                fin = _dt.datetime.strptime(field.data.strip(), '%H:%M')
+            except (ValueError, TypeError):
+                return
+            if fin <= ini:
+                raise ValidationError('La hora de regreso debe ser posterior a la hora de inicio.')
+    
+    def validate_vigencia_fin(self, field):
+        if self.vigencia_inicio.data and field.data and field.data < self.vigencia_inicio.data:
+            raise ValidationError('La fecha "Hasta" no puede ser anterior a la fecha "Desde".')
+    
+    def validate_fecha_unica(self, field):
+        from datetime import date
+        if field.data and field.data < date.today():
+            raise ValidationError('La fecha única no puede estar en el pasado.')
+    
+    hora_inicio = StringField('Hora de Inicio', validators=[DataRequired(), Length(max=10), validar_hora])
+    hora_estimada_regreso = StringField('Hora Estimada de Regreso', validators=[DataRequired(), Length(max=10), validar_hora])
     
     precio = FloatField('Precio por Persona (B/.)', validators=[DataRequired(), NumberRange(min=0.01)])
     cupo_maximo = IntegerField('Cupo Máximo', default=10, validators=[DataRequired(), NumberRange(min=1)])
@@ -151,7 +198,7 @@ class ServicioForm(FlaskForm):
     incluye_entradas = BooleanField('Entradas')
     incluye_equipo = BooleanField('Equipo')
     
-    proveedor_id = SelectField('Proveedor', coerce=int, choices=[], validators=[DataRequired()])
+    proveedor_id = SelectField('Proveedor', coerce=int, choices=[], validators=[Optional()])
     activo = BooleanField('Activo', default=True)
     
     transporte = SelectMultipleField('Transporte disponible para llegar', choices=[
@@ -228,8 +275,8 @@ class ServicioForm(FlaskForm):
         return ''
 
 class ReservaForm(FlaskForm):
-    cliente_id = SelectField('Cliente', coerce=int, validators=[DataRequired()])
-    servicio_id = SelectField('Tour', coerce=int, validators=[DataRequired()])
+    cliente_id = SelectField('Cliente', coerce=id_opcional, validators=[DataRequired()])
+    servicio_id = SelectField('Tour', coerce=id_opcional, validators=[DataRequired()])
     fecha_gira = DateField('Fecha de la Gira', validators=[DataRequired()])
     numero_personas = IntegerField('Número de Personas', validators=[DataRequired()])
     total_pago = FloatField('Total a Pagar', validators=[DataRequired()])
@@ -240,13 +287,17 @@ class PromocionForm(FlaskForm):
     nombre = StringField('Nombre', validators=[DataRequired(), Length(min=3, max=100)])
     descripcion = TextAreaField('Descripción', validators=[DataRequired(), Length(min=10)])
     codigo = StringField('Código', validators=[DataRequired(), Length(min=3, max=50)])
-    tipo = SelectField('Tipo', choices=[('porcentaje', 'Porcentaje'), ('monto_fijo', 'Monto Fijo')], validators=[DataRequired()])
+    tipo = SelectField('Tipo', choices=[
+        ('', 'Seleccione un tipo'),
+        ('porcentaje', 'Porcentaje'),
+        ('monto_fijo', 'Monto Fijo')
+    ], validators=[DataRequired()])
     valor = FloatField('Valor', validators=[DataRequired(), NumberRange(min=0.01)])
     fecha_inicio = DateField('Fecha Inicio', format='%Y-%m-%d', validators=[DataRequired()])
     fecha_fin = DateField('Fecha Fin', format='%Y-%m-%d', validators=[DataRequired()])
     activa = BooleanField('Activa', default=True)
     uso_maximo = IntegerField('Uso Máximo', default=0)
-    servicio_id = SelectField('Servicio', coerce=int, choices=[], validators=[DataRequired()])
+    servicio_id = SelectField('Servicio', coerce=id_opcional, choices=[], validators=[DataRequired()])
     imagen = StringField('URL de la Imagen', validators=[Optional(), Length(max=200)])
     submit = SubmitField('Guardar')
     
@@ -259,6 +310,10 @@ class PromocionForm(FlaskForm):
     def validate_fecha_fin(self, field):
         if self.fecha_inicio.data and field.data and field.data < self.fecha_inicio.data:
             raise ValidationError('La fecha fin debe ser posterior a la fecha inicio')
+    
+    def validate_valor(self, field):
+        if field.data is not None and self.tipo.data == 'porcentaje' and field.data > 100:
+            raise ValidationError('El porcentaje de descuento no puede ser mayor a 100%.')
 
 class AsistenteViajeForm(FlaskForm):
     transporte = SelectField('¿Cómo deseas viajar?', choices=[
@@ -416,7 +471,7 @@ TIPOS_PROVEEDOR = [
 class ClienteForm(FlaskForm):
     nombre = StringField('Nombre', validators=[DataRequired(), Length(min=3, max=100)])
     email = EmailField('Correo Electrónico', validators=[DataRequired(), Email()])
-    telefono = StringField('Teléfono', validators=[Length(max=20)])
+    telefono = StringField('Teléfono', validators=[Length(max=20), validar_telefono])
     activo = BooleanField('Activo', default=True)
     submit = SubmitField('Guardar')
 
@@ -425,7 +480,7 @@ class ProveedorForm(FlaskForm):
     tipo = SelectField('Tipo de proveedor', choices=TIPOS_PROVEEDOR, validators=[DataRequired()])
     provincia = SelectField('Provincia', choices=PROVINCIAS, validators=[DataRequired()])
     contacto = StringField('Persona de contacto', validators=[Length(max=100)])
-    telefono = StringField('Teléfono', validators=[Length(max=20)])
+    telefono = StringField('Teléfono', validators=[Length(max=20), validar_telefono])
     email = EmailField('Correo electrónico', validators=[Length(max=100)])
     direccion = StringField('Dirección', validators=[Length(max=200)])
     especificaciones_json = TextAreaField('Especificaciones', validators=[Optional()])

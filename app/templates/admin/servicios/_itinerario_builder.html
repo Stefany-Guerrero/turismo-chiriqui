@@ -1,0 +1,108 @@
+<div class="mb-3">
+    {{ form.itinerario.label(class="form-label") }}
+    <div id="itinerario_rows"></div>
+    <button type="button" class="btn btn-sm btn-outline-success mt-2" id="btn_agregar_itinerario">
+        <i class="fas fa-plus me-1"></i> Agregar actividad
+    </button>
+    <small class="text-muted d-block mt-1">Selecciona la hora y escribe qué actividad se realizará en ese momento del tour.</small>
+    {{ form.itinerario(id="itinerario_hidden", class="d-none") }}
+</div>
+
+<script>
+(function() {
+    var HORAS = [];
+    for (var i = 0; i < 48; i++) {
+        var totalMin = i * 30;
+        var h24 = Math.floor(totalMin / 60);
+        var min = totalMin % 60;
+        var sufijo = h24 < 12 ? 'AM' : 'PM';
+        var h12 = h24 % 12; if (h12 === 0) h12 = 12;
+        HORAS.push(h12 + ':' + (min < 10 ? '0' + min : min) + ' ' + sufijo);
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function opcionesHoras(seleccionada) {
+        var opts = '<option value="">Hora</option>';
+        for (var i = 0; i < HORAS.length; i++) {
+            opts += '<option value="' + HORAS[i] + '"' + (HORAS[i] === seleccionada ? ' selected' : '') + '>' + HORAS[i] + '</option>';
+        }
+        return opts;
+    }
+
+    function actualizarNumeros() {
+        var filas = document.querySelectorAll('#itinerario_rows .itinerario-fila');
+        for (var i = 0; i < filas.length; i++) {
+            filas[i].querySelector('.itinerario-num').textContent = (i + 1) + '.';
+        }
+    }
+
+    function addFila(hora, desc) {
+        var cont = document.getElementById('itinerario_rows');
+        var fila = document.createElement('div');
+        fila.className = 'input-group mb-2 itinerario-fila';
+        fila.innerHTML = '<span class="input-group-text itinerario-num bg-success text-white fw-bold"></span>'
+            + '<select class="form-select itinerario-hora" style="max-width: 160px;">' + opcionesHoras(hora || '') + '</select>'
+            + '<input type="text" class="form-control itinerario-desc" placeholder="¿Qué se hará a esta hora?" value="' + escapeHtml(desc || '') + '">'
+            + '<button type="button" class="btn btn-outline-danger itinerario-remove" title="Quitar fila"><i class="fas fa-times"></i></button>';
+        cont.appendChild(fila);
+
+        fila.querySelector('.itinerario-remove').addEventListener('click', function() {
+            fila.remove();
+            actualizarNumeros();
+        });
+        actualizarNumeros();
+    }
+
+    function serializar() {
+        var lineas = [];
+        var filas = document.querySelectorAll('#itinerario_rows .itinerario-fila');
+        for (var i = 0; i < filas.length; i++) {
+            var hora = filas[i].querySelector('.itinerario-hora').value.trim();
+            var desc = filas[i].querySelector('.itinerario-desc').value.trim();
+            if (!hora && !desc) continue;
+            if (hora && desc) lineas.push(hora + ' - ' + desc);
+            else lineas.push(hora || desc);
+        }
+        document.getElementById('itinerario_hidden').value = lineas.join('\n');
+    }
+
+    function inicializar() {
+        var hidden = document.getElementById('itinerario_hidden');
+        var valor = hidden.value;
+        if (valor && valor.trim()) {
+            var lineas = valor.split('\n');
+            for (var i = 0; i < lineas.length; i++) {
+                var linea = lineas[i].trim();
+                if (!linea) continue;
+                var idx = linea.indexOf(' - ');
+                if (idx !== -1) addFila(linea.slice(0, idx).trim(), linea.slice(idx + 3).trim());
+                else addFila('', linea);
+            }
+        }
+        if (!document.querySelector('#itinerario_rows .itinerario-fila')) {
+            addFila('', '');
+        }
+
+        document.getElementById('btn_agregar_itinerario').addEventListener('click', function() {
+            addFila('', '');
+        });
+
+        var form = hidden.form;
+        form.addEventListener('submit', function(e) {
+            serializar();
+            if (!hidden.value.trim()) {
+                e.preventDefault();
+                alert('Agrega al menos una actividad al itinerario.');
+                document.getElementById('itinerario_rows').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+
+    inicializar();
+})();
+</script>

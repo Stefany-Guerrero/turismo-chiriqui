@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block page_title %}Asistente de Viaje{% endblock %}
 {% block title %}Planifica tu viaje{% endblock %}
 
 {% block content %}
@@ -97,7 +98,7 @@
                         {% if servicio.imagen %}
                         <img src="{{ servicio.imagen }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 200px; object-fit: cover;">
                         {% else %}
-                        <img src="https://placehold.co/400x250/28a745/white?text={{ servicio.nombre|urlencode }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 200px; object-fit: cover;">
+                        <img src="https://placehold.co/400x250/0B6E4F/white?text={{ servicio.nombre|urlencode }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height: 200px; object-fit: cover;">
                         {% endif %}
                         <div class="card-body">
                             <span class="badge bg-success mb-2">{{ servicio.categoria_nombre }}</span>

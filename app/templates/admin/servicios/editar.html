@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block page_title %}Editar Tour{% endblock %}
 {% block title %}Editar Tour{% endblock %}
 
 {% block content %}
@@ -211,10 +212,7 @@
                         
                         <h5 class="mt-4">8. Itinerario</h5>
                         <hr>
-                        <div class="mb-3">
-                            {{ form.itinerario.label(class="form-label") }}
-                            {{ form.itinerario(class="form-control", rows=4) }}
-                        </div>
+                        {% include 'admin/servicios/_itinerario_builder.html' %}
                         
                         <h5 class="mt-4">9. Imagen</h5>
                         <hr>
@@ -228,8 +226,14 @@
                         <hr>
                         <div class="mb-3">
                             {{ form.proveedor_id.label(class="form-label") }}
-                            {{ form.proveedor_id(class="form-control", id="proveedor_id", onchange="autoCupo()") }}
+                            {{ form.proveedor_id(class="form-select", id="proveedor_id", onchange="autoCupo()") }}
                             <small class="text-muted">Proveedor principal del tour (legacy).</small>
+                            {% if not proveedores_activos %}
+                            <div class="alert alert-warning mt-2 py-2 mb-0" style="font-size: 0.85rem;">
+                                <i class="fas fa-exclamation-triangle"></i> No hay proveedores activos registrados.
+                                <a href="{{ url_for('proveedores.crear') }}" class="fw-bold">Crear proveedor</a>
+                            </div>
+                            {% endif %}
                         </div>
                         
                         <h5 class="mt-4">10b. Proveedores del tour (con rol)</h5>
@@ -237,6 +241,7 @@
                         <div class="alert alert-info py-2 mb-3" style="font-size: 0.85rem;">
                             <i class="fas fa-info-circle"></i> Selecciona qué proveedor cumple cada función en este tour. No es necesario asignar todos los roles.
                         </div>
+                        {% if proveedores_activos %}
                         <div id="proveedores-section">
                             {% if proveedores_tour %}
                                 {% for tp in proveedores_tour %}
@@ -293,6 +298,12 @@
                         <button type="button" class="btn btn-outline-success btn-sm" onclick="agregarProveedor()">
                             <i class="fas fa-plus"></i> Agregar proveedor
                         </button>
+                        {% else %}
+                        <div class="alert alert-warning" role="alert" style="font-size: 0.9rem;">
+                            <i class="fas fa-exclamation-triangle"></i> No hay proveedores registrados. Para asignar proveedores con rol a este tour,
+                            <a href="{{ url_for('proveedores.crear') }}" class="fw-bold">crea al menos un proveedor</a> primero.
+                        </div>
+                        {% endif %}
                         
                         <h5 class="mt-4">11. Asistente de Viaje</h5>
                         <hr>

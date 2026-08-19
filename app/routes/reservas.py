@@ -42,8 +42,8 @@ def crear():
         return redirect(url_for('auth.dashboard'))
     
     form = ReservaForm()
-    form.cliente_id.choices = [(c.id, c.nombre) for c in Cliente.query.all()]
-    form.servicio_id.choices = [(s.id, f"{s.nombre} - ${s.precio}") for s in Servicio.query.filter_by(activo=True).all()]
+    form.cliente_id.choices = [('', 'Seleccione un cliente')] + [(c.id, c.nombre) for c in Cliente.query.all()]
+    form.servicio_id.choices = [('', 'Seleccione un tour')] + [(s.id, f"{s.nombre} - ${s.precio}") for s in Servicio.query.filter_by(activo=True).all()]
     
     if form.validate_on_submit():
         reserva = Reserva(
@@ -59,7 +59,9 @@ def crear():
         flash('Reserva creada exitosamente.', 'success')
         return redirect(url_for('reservas.index'))
     
-    return render_template('reservas/crear.html', form=form)
+    return render_template('reservas/crear.html', form=form,
+                           sin_clientes=Cliente.query.count() == 0,
+                           sin_servicios=Servicio.query.filter_by(activo=True).count() == 0)
 
 @reservas_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -71,7 +73,11 @@ def editar(id):
     reserva = Reserva.query.get_or_404(id)
     form = ReservaForm(obj=reserva)
     form.cliente_id.choices = [(c.id, c.nombre) for c in Cliente.query.all()]
-    form.servicio_id.choices = [(s.id, f"{s.nombre} - ${s.precio}") for s in Servicio.query.filter_by(activo=True).all()]
+    from sqlalchemy import or_
+    servicios = Servicio.query.filter(
+        or_(Servicio.activo == True, Servicio.id == reserva.servicio_id)
+    ).all()
+    form.servicio_id.choices = [(s.id, f"{s.nombre} - ${s.precio}") for s in servicios]
     
     if form.validate_on_submit():
         reserva.cliente_id = form.cliente_id.data
@@ -84,7 +90,9 @@ def editar(id):
         flash('Reserva actualizada exitosamente.', 'success')
         return redirect(url_for('reservas.index'))
     
-    return render_template('reservas/editar.html', form=form, reserva=reserva)
+    return render_template('reservas/editar.html', form=form, reserva=reserva,
+                           sin_clientes=Cliente.query.count() == 0,
+                           sin_servicios=Servicio.query.filter_by(activo=True).count() == 0)
 
 @reservas_bp.route('/eliminar/<int:id>', methods=['POST'])
 @login_required
@@ -116,6 +124,8 @@ def cancelar(id):
     
     reserva.estado = 'cancelada'
     db.session.commit()
+    from app.utils.audit import registrar_auditoria
+    registrar_auditoria('CANCELAR_RESERVA', 'Reserva', reserva.id, f'Reserva #{reserva.id} cancelada')
     flash('Reserva cancelada exitosamente.', 'success')
     return redirect(url_for('reservas.index'))
 
@@ -176,6 +186,8 @@ def cambiar_estado(id, estado):
     if estado in estados_validos:
         reserva.estado = estado
         db.session.commit()
+        from app.utils.audit import registrar_auditoria
+        registrar_auditoria('CAMBIAR_ESTADO_RESERVA', 'Reserva', reserva.id, f'Reserva #{reserva.id}: estado -> {estado}')
         flash(f'Estado cambiado a {estado}.', 'success')
     else:
         flash('Estado no válido.', 'error')

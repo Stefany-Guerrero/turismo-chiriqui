@@ -16,31 +16,36 @@
                         <td style="background: linear-gradient(135deg, #1a237e, #283593, #3949ab); padding: 28px 30px 22px; text-align: center;">
                             <div style="font-size: 12px; color: #9fa8da; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 6px;">Panel de Administración</div>
                             <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800;">🔔 NUEVA RESERVA</h1>
-                            <p style="color: #c5cae9; margin: 4px 0 0; font-size: 13px;">Se ha procesado un pago en la plataforma</p>
+                            <p style="color: #c5cae9; margin: 4px 0 0; font-size: 13px;">Detalle completo de la transacción para el equipo</p>
                         </td>
                     </tr>
 
                     <!-- STATUS -->
                     <tr>
                         <td align="center" style="padding: 0 30px;">
-                            <div style="display: inline-block; background: #e8f5e9; border: 2px solid #43a047; border-radius: 20px; padding: 6px 24px; margin-top: -16px;">
-                                <span style="color: #2e7d32; font-weight: 700; font-size: 13px;">✅ PAGO CONFIRMADO</span>
+                            <div style="display: inline-block; background: #e8eaf6; border: 2px solid #3949ab; border-radius: 20px; padding: 6px 24px; margin-top: -16px;">
+                                <span style="color: #283593; font-weight: 700; font-size: 13px;">✅ PAGO CONFIRMADO · {{ estado|upper }}</span>
                             </div>
                         </td>
                     </tr>
 
                     <!-- RESERVATION CARD -->
                     <tr>
-                        <td style="padding: 24px 30px 10px;">
+                        <td style="padding: 24px 30px 6px;">
                             <table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #e8eaf6; border-radius: 12px; overflow: hidden;">
 
                                 <!-- TOUR BANNER -->
                                 <tr>
                                     <td style="background: linear-gradient(135deg, #283593, #5c6bc0); padding: 16px 20px;">
-                                        <span style="display: inline-block; background: rgba(255,255,255,0.2); color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase;">{{ tour_categoria }}</span>
+                                        {% if tour_codigo %}
+                                        <span style="display: inline-block; background: rgba(255,255,255,0.2); color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase;">{{ tour_codigo }}</span>
+                                        {% endif %}
+                                        {% if tour_categoria %}
+                                        <span style="display: inline-block; background: rgba(255,255,255,0.2); color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-left: 4px;">{{ tour_categoria }}</span>
+                                        {% endif %}
                                         <h3 style="color: #ffffff; margin: 6px 0 0; font-size: 18px;">{{ tour }}</h3>
-                                        {% if incluye_tour %}
-                                        <div style="color: #c5cae9; font-size: 10px; margin-top: 4px; line-height: 1.4;">{{ incluye_tour[:200] }}{% if incluye_tour|length > 200 %}...{% endif %}</div>
+                                        {% if tour_destino %}
+                                        <div style="color: #c5cae9; font-size: 11px; margin-top: 4px;">{{ tour_destino }}{% if tour_provincia %}, {{ tour_provincia }}{% endif %}{% if tour_distrito %} · {{ tour_distrito }}{% endif %}</div>
                                         {% endif %}
                                         {% if transporte_info %}
                                         <div style="color: #ffcc02; font-size: 10px; margin-top: 4px;">{{ transporte_info }}</div>
@@ -48,31 +53,105 @@
                                     </td>
                                 </tr>
 
-                                <!-- INFO GRID -->
+                                <!-- TOUR DETAILS -->
                                 <tr>
-                                    <td style="padding: 16px 20px;">
+                                    <td style="padding: 14px 20px 4px;">
+                                        <div style="color: #1a237e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px;">📋 Detalle del Tour</div>
                                         <table width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
-                                                <td width="50%" style="padding: 4px 8px 4px 0; vertical-align: top;">
+                                                <td width="50%" style="padding: 3px 8px 3px 0; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Duración</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ tour_duracion }}</div>
+                                                </td>
+                                                <td width="50%" style="padding: 3px 0 3px 8px; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Precio por persona</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ tour_precio }}</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 3px 8px 3px 0; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Hora de salida</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ tour_hora_salida or '—' }}</div>
+                                                </td>
+                                                <td style="padding: 3px 0 3px 8px; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Hora de regreso</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ tour_hora_regreso or '—' }}</div>
+                                                </td>
+                                            </tr>
+                                            {% if tour_punto_salida %}
+                                            <tr>
+                                                <td colspan="2" style="padding: 3px 0; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Punto de salida</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ tour_punto_salida }}</div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if tour_punto_llegada %}
+                                            <tr>
+                                                <td colspan="2" style="padding: 3px 0; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Punto de llegada</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ tour_punto_llegada }}</div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                {% if incluye_tour or tour_no_incluye %}
+                                <tr>
+                                    <td style="padding: 8px 20px 4px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            {% if incluye_tour %}
+                                            <tr>
+                                                <td style="padding: 3px 0; vertical-align: top;">
+                                                    <div style="color: #2e7d32; font-size: 11px; font-weight: 700;">✓ Incluye</div>
+                                                    <div style="color: #555; font-size: 12px; line-height: 1.5;">{{ incluye_tour|nl2br }}</div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if tour_no_incluye %}
+                                            <tr>
+                                                <td style="padding: 3px 0; vertical-align: top;">
+                                                    <div style="color: #c62828; font-size: 11px; font-weight: 700;">✗ No incluye</div>
+                                                    <div style="color: #555; font-size: 12px; line-height: 1.5;">{{ tour_no_incluye|nl2br }}</div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% endif %}
+
+                                <!-- INFO GRID -->
+                                <tr>
+                                    <td style="padding: 12px 20px 4px;">
+                                        <div style="color: #1a237e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px;">🗓 Reserva</div>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td width="50%" style="padding: 3px 8px 3px 0; vertical-align: top;">
                                                     <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Reserva</div>
                                                     <div style="color: #1a237e; font-size: 15px; font-weight: 800;">#{{ reserva_id }}</div>
                                                 </td>
-                                                <td width="50%" style="padding: 4px 0 4px 8px; vertical-align: top;">
+                                                <td width="50%" style="padding: 3px 0 3px 8px; vertical-align: top;">
                                                     <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Transacción</div>
                                                     <div style="color: #333; font-size: 12px; font-weight: 600; font-family: 'Courier New', monospace;">{{ transaccion }}</div>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 4px 8px 4px 0; vertical-align: top;">
+                                                <td style="padding: 3px 8px 3px 0; vertical-align: top;">
                                                     <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Fecha del tour</div>
-                                                    <div style="color: #333; font-size: 14px; font-weight: 700;">{{ fecha }}</div>
-                                                    {% if fecha_fin %}
-                                                    <div style="color: #666; font-size: 11px;">al {{ fecha_fin }}</div>
-                                                    {% endif %}
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ fecha }}{% if fecha_fin %} al {{ fecha_fin }}{% endif %}</div>
                                                 </td>
-                                                <td style="padding: 4px 0 4px 8px; vertical-align: top;">
+                                                <td style="padding: 3px 0 3px 8px; vertical-align: top;">
                                                     <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Personas</div>
-                                                    <div style="color: #333; font-size: 14px; font-weight: 700;">{{ personas }}</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ personas }}</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="padding: 3px 0; vertical-align: top;">
+                                                    <div style="color: #999; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Fecha de compra</div>
+                                                    <div style="color: #333; font-size: 13px; font-weight: 700;">{{ fecha_compra }}</div>
                                                 </td>
                                             </tr>
                                         </table>
@@ -81,7 +160,7 @@
 
                                 <!-- DASHED DIVIDER -->
                                 <tr>
-                                    <td style="padding: 0 20px;">
+                                    <td style="padding: 8px 20px 0;">
                                         <table width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td style="border-top: 2px dashed #e0e0e0; height: 1px;"></td>
@@ -92,28 +171,34 @@
 
                                 <!-- PAYMENT -->
                                 <tr>
-                                    <td style="padding: 12px 20px;">
+                                    <td style="padding: 10px 20px 14px;">
                                         <table width="100%" cellpadding="0" cellspacing="0">
                                             {% if subtotal %}
                                             <tr>
-                                                <td style="color: #666; font-size: 12px; padding: 2px 0;">Subtotal</td>
+                                                <td style="color: #666; font-size: 12px; padding: 2px 0;">Subtotal ({{ personas }} × {{ tour_precio }})</td>
                                                 <td style="text-align: right; color: #333; font-size: 12px; padding: 2px 0;">{{ subtotal }}</td>
                                             </tr>
                                             {% endif %}
                                             {% if itbms %}
                                             <tr>
-                                                <td style="color: #666; font-size: 12px; padding: 2px 0;">ITBMS</td>
+                                                <td style="color: #666; font-size: 12px; padding: 2px 0;">ITBMS (7%)</td>
                                                 <td style="text-align: right; color: #333; font-size: 12px; padding: 2px 0;">{{ itbms }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if descuento %}
+                                            <tr>
+                                                <td style="color: #2e7d32; font-size: 12px; padding: 2px 0;">Descuento aplicado</td>
+                                                <td style="text-align: right; color: #2e7d32; font-size: 12px; padding: 2px 0;">-{{ descuento }}</td>
                                             </tr>
                                             {% endif %}
                                             <tr>
                                                 <td style="border-top: 1px solid #e8eaf6; padding: 6px 0 2px; font-weight: 700; color: #1a237e; font-size: 16px;">Total</td>
                                                 <td style="border-top: 1px solid #e8eaf6; text-align: right; padding: 6px 0 2px; font-weight: 800; color: #283593; font-size: 18px;">{{ total }}</td>
                                             </tr>
-                                            {% if tipo_tarjeta and ultimos_digitos %}
+                                            {% if metodo_pago == 'tarjeta' %}
                                             <tr>
                                                 <td colspan="2" style="padding: 4px 0 0; color: #999; font-size: 10px;">
-                                                    {{ tipo_tarjeta|upper }} · terminada en {{ ultimos_digitos }}
+                                                    {{ tipo_tarjeta|upper }} · terminada en {{ ultimos_digitos }}{% if titular_tarjeta %} · Titular: {{ titular_tarjeta }}{% endif %}
                                                 </td>
                                             </tr>
                                             {% elif metodo_pago == 'yappy' %}
@@ -132,23 +217,40 @@
 
                     <!-- CLIENT INFO -->
                     <tr>
-                        <td style="padding: 8px 30px 4px;">
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; border-radius: 8px; padding: 14px 18px;">
+                        <td style="padding: 14px 30px 4px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background: #ede7f6; border-radius: 8px; padding: 14px 18px;">
                                 <tr>
-                                    <td style="color: #333; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; padding-bottom: 8px;">👤 Datos del Cliente</td>
+                                    <td style="color: #4527a0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; padding-bottom: 8px;">👤 Datos del Cliente</td>
                                 </tr>
                                 <tr>
                                     <td style="color: #333; font-size: 14px; font-weight: 600; padding: 1px 0;">{{ cliente_nombre }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="color: #666; font-size: 13px; padding: 1px 0;">{{ cliente_email }}</td>
+                                    <td style="color: #666; font-size: 13px; padding: 1px 0;">📧 {{ cliente_email }}</td>
                                 </tr>
                                 {% if cliente_telefono %}
                                 <tr>
-                                    <td style="color: #666; font-size: 13px; padding: 1px 0;">{{ cliente_telefono }}</td>
+                                    <td style="color: #666; font-size: 13px; padding: 1px 0;">📱 {{ cliente_telefono }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if cliente_username %}
+                                <tr>
+                                    <td style="color: #666; font-size: 13px; padding: 1px 0;">👤 Usuario: {{ cliente_username }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if cliente_desde %}
+                                <tr>
+                                    <td style="color: #888; font-size: 12px; padding: 1px 0;">Cliente desde: {{ cliente_desde }}</td>
                                 </tr>
                                 {% endif %}
                             </table>
+                        </td>
+                    </tr>
+
+                    <!-- ACTION BUTTON -->
+                    <tr>
+                        <td align="center" style="padding: 18px 30px 6px;">
+                            <a href="{{ link }}" style="display: inline-block; background: #3949ab; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 24px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px;">Ver reserva en el panel</a>
                         </td>
                     </tr>
 

@@ -60,11 +60,13 @@ def crear():
             proveedor.set_especificaciones(espec_data)
             db.session.add(proveedor)
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('CREAR_PROVEEDOR', 'Proveedor', proveedor.id, f'Proveedor creado: {proveedor.nombre}')
             flash('Proveedor creado exitosamente', 'success')
             return redirect(url_for('proveedores.index'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al crear proveedor: {str(e)}', 'danger')
+            flash('Error al crear proveedor.', 'danger')
     return render_template('admin/proveedores/crear.html', form=form, espec_schema=ESPECIFICACIONES_SCHEMA)
 
 @proveedores_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
@@ -88,11 +90,13 @@ def editar(id):
                 espec_data = {}
             proveedor.set_especificaciones(espec_data)
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('EDITAR_PROVEEDOR', 'Proveedor', proveedor.id, f'Proveedor actualizado: {proveedor.nombre}')
             flash('Proveedor actualizado exitosamente', 'success')
             return redirect(url_for('proveedores.index'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al actualizar proveedor: {str(e)}', 'danger')
+            flash('Error al actualizar proveedor.', 'danger')
     return render_template('admin/proveedores/editar.html', form=form, proveedor=proveedor, espec_schema=ESPECIFICACIONES_SCHEMA, espec_data=proveedor.get_especificaciones())
 
 @proveedores_bp.route('/eliminar/<int:id>', methods=['POST'])
@@ -102,10 +106,13 @@ def eliminar(id):
         if proveedor.servicios:
             flash(f'No se puede eliminar: el proveedor tiene {len(proveedor.servicios)} tour(s) asociado(s)', 'danger')
             return redirect(url_for('proveedores.index'))
+        nombre = proveedor.nombre
         db.session.delete(proveedor)
         db.session.commit()
+        from app.utils.audit import registrar_auditoria
+        registrar_auditoria('ELIMINAR_PROVEEDOR', 'Proveedor', id, f'Proveedor eliminado: {nombre}')
         flash('Proveedor eliminado', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error: {str(e)}', 'danger')
+        flash('Error al eliminar el proveedor.', 'danger')
     return redirect(url_for('proveedores.index'))

@@ -271,7 +271,7 @@ class Servicio(db.Model):
         dias_list = self.get_dias_operacion_list()
         return [dias_map.get(d, '') for d in dias_list if d in dias_map]
     
-    def get_calendario_mes(self, mes=None, año=None):
+    def get_calendario_mes(self, mes=None, año=None, disp_map=None):
         import calendar
         from datetime import date, timedelta
         
@@ -291,12 +291,26 @@ class Servicio(db.Model):
         
         for dia in range(1, ultimo_dia.day + 1):
             fecha = date(año, mes, dia)
-            disponible, mensaje, cupos = self.verificar_disponibilidad_completa(fecha)
+            
+            disponible_flag = self.esta_disponible(fecha)
+            if not disponible_flag:
+                if self.tipo_programacion == 'fecha_unica':
+                    mensaje = f"Este tour solo opera el {self.fecha_unica.strftime('%d/%m/%Y')}"
+                else:
+                    dias_nombres = self.get_dias_operacion_nombres()
+                    mensaje = f"Este tour opera los dias: {', '.join(dias_nombres)}" if dias_nombres else "Este tour no opera en la fecha seleccionada"
+                cupos = 0
+            else:
+                if disp_map is not None:
+                    cupos = disp_map.get((self.id, fecha), self.cupo_maximo)
+                else:
+                    cupos = self.get_cupos_disponibles_fecha(fecha)
+                mensaje = "Disponible" if cupos > 0 else "Sin cupos"
             
             calendario.append({
                 'fecha': fecha,
                 'dia': dia,
-                'disponible': disponible,
+                'disponible': disponible_flag and cupos > 0,
                 'cupos': cupos,
                 'mensaje': mensaje,
                 'es_pasado': fecha < hoy,

@@ -17,6 +17,8 @@ class Usuario(db.Model, UserMixin):
     fecha_creacion = db.Column(db.DateTime, default=panama_now)
     reset_token = db.Column(db.String(200), nullable=True)
     reset_token_expira = db.Column(db.DateTime, nullable=True)
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    blocked_until = db.Column(db.DateTime, nullable=True)
     
     cliente = db.relationship('Cliente', back_populates='usuario', uselist=False)
     

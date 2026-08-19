@@ -1,49 +1,59 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session, current_app
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session, current_app, abort
 from flask_login import login_required, current_user
 from app import db
 from app.models.servicio import Servicio, Disponibilidad
 from app.models.reserva import Reserva
 from app.models.cliente import Cliente
 from app.models.notificacion import Notificacion
+from app.models.promocion import Promocion
 from app.forms import AsistenteViajeForm
 from app.email_utils import send_reservation_email, send_admin_new_reservation
-from datetime import datetime, timedelta
+from app.utils.archivos import validar_archivo
+from datetime import datetime, timedelta, date
 import secrets
 import json
 import os
 import string
-from sqlalchemy import or_, func, text
+from sqlalchemy import or_, func
+
+from app.utils import preload_promociones, preload_disponibilidad
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
     servicios = Servicio.query_activos_sin_promocion().all()
-    tours = Servicio.query_activos_sin_promocion().all()
-    
+    tours = servicios
+
+    preload_promociones(servicios)
+    for s in servicios:
+        s.promocion_activa = getattr(s, '_promo_cache', None)
+
     ofertas = Servicio.query.filter_by(activo=True).all()
+    preload_promociones(ofertas)
+    ofertas = [s for s in ofertas if getattr(s, '_promo_cache', None)]
     for s in ofertas:
-        s.promocion_activa = s.get_promocion_activa()
-    ofertas = [s for s in ofertas if s.promocion_activa]
-    
-    destinos_populares = db.session.query(
-        Servicio.destino,
-        func.count(Servicio.id).label('cantidad')
+        s.promocion_activa = getattr(s, '_promo_cache', None)
+
+    mas_vendidos = db.session.query(
+        Servicio,
+        func.count(Reserva.id).label('num_reservas')
+    ).join(
+        Reserva, Reserva.servicio_id == Servicio.id
     ).filter(
         Servicio.activo == True,
-        Servicio.destino.isnot(None),
-        Servicio.destino != ''
+        Reserva.estado != 'cancelada'
     ).group_by(
-        Servicio.destino
+        Servicio.id
     ).order_by(
-        func.count(Servicio.id).desc()
+        func.count(Reserva.id).desc()
     ).limit(4).all()
     
     return render_template('index.html', 
                          servicios=servicios, 
                          tours=tours,
                          ofertas=ofertas,
-                         destinos_populares=destinos_populares,
+                         mas_vendidos=mas_vendidos,
                          destino='',
                          fecha_inicio='',
                          fecha_fin='',
@@ -51,7 +61,10 @@ def index():
                          categoria='',
                          tipo_duracion='')
 
-@main_bp.route('/buscar')
+def _escape_like(value):
+    return value.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+
+@main_bp.route('/bx')
 def buscar():
     destino = request.args.get('destino', '')
     fecha_inicio = request.args.get('fecha_inicio', '')
@@ -60,15 +73,19 @@ def buscar():
     categoria = request.args.get('categoria', '')
     tipo_duracion = request.args.get('tipo_duracion', '')
     
-    query = Servicio.query_activos_sin_promocion()
+    if tipo_duracion == 'oferta':
+        query = Servicio.query.filter_by(activo=True)
+    else:
+        query = Servicio.query_activos_sin_promocion()
     
     if destino:
+        destEsc = _escape_like(destino)
         query = query.filter(
             or_(
-                Servicio.nombre.ilike(f'%{destino}%'),
-                Servicio.destino.ilike(f'%{destino}%'),
-                Servicio.provincia.ilike(f'%{destino}%'),
-                Servicio.distrito.ilike(f'%{destino}%')
+                Servicio.nombre.ilike(f'%{destEsc}%'),
+                Servicio.destino.ilike(f'%{destEsc}%'),
+                Servicio.provincia.ilike(f'%{destEsc}%'),
+                Servicio.distrito.ilike(f'%{destEsc}%')
             )
         )
     
@@ -86,6 +103,17 @@ def buscar():
         query = query.filter(
             Servicio.duracion_unidad == 'dias',
             Servicio.duracion_cantidad > 1
+        )
+    elif tipo_duracion == 'oferta':
+        hoy = datetime.now().date()
+        query = query.filter(
+            Servicio.id.in_(
+                db.session.query(Promocion.servicio_id).filter(
+                    Promocion.activa == True,
+                    Promocion.fecha_inicio <= hoy,
+                    Promocion.fecha_fin >= hoy
+                )
+            )
         )
     
     if personas and personas.isdigit():
@@ -110,13 +138,14 @@ def buscar():
             minimo_dias = max(1, int(dias_rango * 0.7))
             
             todos_servicios = query.all()
+            disp_map = preload_disponibilidad(todos_servicios, fecha_ini, fecha_fin_obj)
             dias_por_tour = {s.id: 0 for s in todos_servicios}
             
             d = fecha_ini
             while d <= fecha_fin_obj:
                 for s in todos_servicios:
                     if s.esta_disponible(d):
-                        cupos = s.get_cupos_disponibles_fecha(d)
+                        cupos = disp_map.get((s.id, d), s.cupo_maximo)
                         if cupos >= num_personas:
                             dias_por_tour[s.id] += 1
                 d += timedelta(days=1)
@@ -130,50 +159,63 @@ def buscar():
     servicios = query.all()
     todos_tours = Servicio.query_activos_sin_promocion().all()
     
+    preload_promociones(servicios)
     for servicio in servicios:
-        servicio.promocion_activa = servicio.get_promocion_activa()
+        servicio.promocion_activa = getattr(servicio, '_promo_cache', None)
     
     dias_info = {}
     if fecha_inicio and fecha_fin:
         try:
             fecha_ini = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
             fecha_fin_obj = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+            if not disp_map:
+                disp_map = preload_disponibilidad(servicios, fecha_ini, fecha_fin_obj)
+            num_p = int(personas) if personas and personas.isdigit() else 1
             for s in servicios:
                 dias_disponibles = []
                 d = fecha_ini
                 while d <= fecha_fin_obj:
                     if s.esta_disponible(d):
-                        cupos = s.get_cupos_disponibles_fecha(d)
-                        if cupos >= (int(personas) if personas and personas.isdigit() else 1):
+                        cupos = disp_map.get((s.id, d), s.cupo_maximo)
+                        if cupos >= num_p:
                             dias_disponibles.append(d)
                     d += timedelta(days=1)
                 dias_info[s.id] = dias_disponibles
         except:
             pass
     
-    todos = Servicio.query.filter_by(activo=True).all()
-    for s in todos:
-        s.promocion_activa = s.get_promocion_activa()
-    ofertas = [s for s in todos if s.promocion_activa]
+    if tipo_duracion == 'oferta':
+        ofertas = servicios
+    else:
+        todos = Servicio.query.filter_by(activo=True).all()
+        preload_promociones(todos)
+        ofertas = [s for s in todos if getattr(s, '_promo_cache', None)]
+        for s in ofertas:
+            s.promocion_activa = getattr(s, '_promo_cache', None)
+        if tipo_duracion == 'por_dia':
+            ofertas = [s for s in ofertas if not (s.duracion_unidad == 'dias' and s.duracion_cantidad and s.duracion_cantidad > 1)]
+        elif tipo_duracion == 'extendido':
+            ofertas = [s for s in ofertas if s.duracion_unidad == 'dias' and s.duracion_cantidad and s.duracion_cantidad > 1]
     
-    destinos_populares = db.session.query(
-        Servicio.destino,
-        func.count(Servicio.id).label('cantidad')
+    mas_vendidos = db.session.query(
+        Servicio,
+        func.count(Reserva.id).label('num_reservas')
+    ).join(
+        Reserva, Reserva.servicio_id == Servicio.id
     ).filter(
         Servicio.activo == True,
-        Servicio.destino.isnot(None),
-        Servicio.destino != ''
+        Reserva.estado != 'cancelada'
     ).group_by(
-        Servicio.destino
+        Servicio.id
     ).order_by(
-        func.count(Servicio.id).desc()
+        func.count(Reserva.id).desc()
     ).limit(4).all()
     
     return render_template('index.html', 
                          servicios=servicios,
                          tours=todos_tours,
                          ofertas=ofertas,
-                         destinos_populares=destinos_populares,
+                         mas_vendidos=mas_vendidos,
                          destino=destino,
                          fecha_inicio=fecha_inicio,
                          fecha_fin=fecha_fin,
@@ -182,7 +224,7 @@ def buscar():
                          tipo_duracion=tipo_duracion,
                          dias_info=dias_info)
 
-@main_bp.route('/tour/<int:id>')
+@main_bp.route('/t/<int:id>')
 def tour_detalle(id):
     servicio = Servicio.query.get_or_404(id)
     servicio.promocion_activa = servicio.get_promocion_activa()
@@ -196,7 +238,15 @@ def tour_detalle(id):
     if año_actual < 2000 or año_actual > 2100:
         año_actual = hoy.year
     
-    calendario = servicio.get_calendario_mes(mes_actual, año_actual)
+    primer_dia = date(año_actual, mes_actual, 1)
+    if mes_actual == 12:
+        ultimo_dia = date(año_actual + 1, 1, 1) - timedelta(days=1)
+    else:
+        ultimo_dia = date(año_actual, mes_actual + 1, 1) - timedelta(days=1)
+    disp_map = preload_disponibilidad([servicio], primer_dia, ultimo_dia)
+    
+    calendario = servicio.get_calendario_mes(mes_actual, año_actual, disp_map=disp_map)
+    cupos_json = {d['fecha'].strftime('%Y-%m-%d'): d['cupos'] for d in calendario['dias']}
     
     promocion_info = servicio.get_precio_con_descuento()
     precio_a_usar = promocion_info['precio_final']
@@ -209,11 +259,70 @@ def tour_detalle(id):
                          calendario=calendario,
                          mes_actual=mes_actual,
                          año_actual=año_actual,
+                         cupos_json=cupos_json,
                          precio_a_usar=precio_a_usar,
                          es_extendido=es_extendido,
                          duracion_dias=duracion_dias)
 
-@main_bp.route('/asistente', methods=['GET', 'POST'])
+@main_bp.route('/t/<int:id>/cal')
+def tour_calendario(id):
+    servicio = Servicio.query.get_or_404(id)
+    
+    hoy = datetime.now().date()
+    mes_actual = request.args.get('mes', hoy.month, type=int)
+    año_actual = request.args.get('año', hoy.year, type=int)
+    
+    if mes_actual < 1 or mes_actual > 12:
+        mes_actual = hoy.month
+    if año_actual < 2000 or año_actual > 2100:
+        año_actual = hoy.year
+    
+    primer_dia = date(año_actual, mes_actual, 1)
+    if mes_actual == 12:
+        ultimo_dia = date(año_actual + 1, 1, 1) - timedelta(days=1)
+    else:
+        ultimo_dia = date(año_actual, mes_actual + 1, 1) - timedelta(days=1)
+    disp_map = preload_disponibilidad([servicio], primer_dia, ultimo_dia)
+    
+    calendario = servicio.get_calendario_mes(mes_actual, año_actual, disp_map=disp_map)
+    cupos_json = {d['fecha'].strftime('%Y-%m-%d'): d['cupos'] for d in calendario['dias']}
+    
+    return render_template('tour_calendario.html',
+                         calendario=calendario,
+                         mes_actual=mes_actual,
+                         año_actual=año_actual,
+                         cupos_json=cupos_json)
+
+@main_bp.route('/c/<token>')
+def consulta_reserva_token(token):
+    reserva = Reserva.query.filter_by(consulta_token=token).first()
+    if not reserva:
+        abort(404)
+    if current_user.is_authenticated and current_user.rol != 'admin':
+        cliente = current_user.get_cliente()
+        if reserva.cliente_id != cliente.id:
+            flash('No tienes permiso para ver esta reserva.', 'error')
+            return redirect(url_for('main.mis_reservas'))
+    elif not current_user.is_authenticated:
+        pass
+    return render_template('reservas/consulta_reserva.html', reserva=reserva)
+
+@main_bp.route('/reserva/<int:id>/consulta')
+@login_required
+def consulta_reserva(id):
+    reserva = db.session.get(Reserva, id)
+    if not reserva:
+        abort(404)
+    if current_user.rol != 'admin':
+        cliente = current_user.get_cliente()
+        if reserva.cliente_id != cliente.id:
+            flash('No tienes permiso para ver esta reserva.', 'error')
+            return redirect(url_for('main.mis_reservas'))
+    if reserva.consulta_token:
+        return redirect(url_for('main.consulta_reserva_token', token=reserva.consulta_token))
+    return render_template('reservas/consulta_reserva.html', reserva=reserva)
+
+@main_bp.route('/ax', methods=['GET', 'POST'])
 def asistente_viaje():
     form = AsistenteViajeForm()
     resultados = []
@@ -277,7 +386,7 @@ def generar_codigo_transaccion():
     rand = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(4))
     return f'TCH-{fecha}-{rand}'
 
-@main_bp.route('/pagar/<int:servicio_id>', methods=['POST'])
+@main_bp.route('/px/<int:servicio_id>', methods=['POST'])
 def pagar(servicio_id):
     servicio = Servicio.query.get_or_404(servicio_id)
     servicio.promocion_activa = servicio.get_promocion_activa()
@@ -285,6 +394,9 @@ def pagar(servicio_id):
     fecha_gira = request.form.get('fecha_gira')
     fecha_fin = request.form.get('fecha_fin')
     numero_personas = int(request.form.get('numero_personas', 1))
+    if numero_personas < 1 or numero_personas > 50:
+        flash('Número de personas inválido (1-50).', 'error')
+        return redirect(url_for('main.tour_detalle', id=servicio_id))
     transporte = request.form.get('transporte', '')
 
     if not fecha_gira:
@@ -356,7 +468,7 @@ def pagar(servicio_id):
                          itbms=itbms,
                          total=total)
 
-@main_bp.route('/confirmar-pago/<int:servicio_id>', methods=['POST'])
+@main_bp.route('/cx/<int:servicio_id>', methods=['POST'])
 @login_required
 def confirmar_pago(servicio_id):
     servicio = Servicio.query.get_or_404(servicio_id)
@@ -364,15 +476,23 @@ def confirmar_pago(servicio_id):
     fecha_gira = request.form.get('fecha_gira')
     fecha_fin = request.form.get('fecha_fin')
     numero_personas = int(request.form.get('numero_personas', 1))
+    if numero_personas < 1 or numero_personas > 50:
+        flash('Número de personas inválido (1-50).', 'error')
+        return redirect(url_for('main.tour_detalle', id=servicio_id))
     transporte = request.form.get('transporte', '')
     metodo_pago = request.form.get('metodo_pago', 'tarjeta')
     tipo_tarjeta = request.form.get('tipo_tarjeta')
     titular_tarjeta = request.form.get('titular_tarjeta')
     numero_tarjeta = request.form.get('numero_tarjeta', '').replace(' ', '').replace('-', '')
-    subtotal = float(request.form.get('subtotal', 0))
-    itbms = float(request.form.get('itbms', 0))
-    total = float(request.form.get('total', 0))
     telefono_contacto = ''
+
+    promocion_info = servicio.get_precio_con_descuento()
+    precio_base = promocion_info['precio_final']
+    precio_transporte = servicio.get_precio_transporte(transporte) if transporte else 0
+    precio_persona = round(precio_base + precio_transporte, 2)
+    subtotal = round(precio_persona * numero_personas, 2)
+    itbms = round(subtotal * 0.07, 2)
+    total = round(subtotal + itbms, 2)
 
     if metodo_pago == 'yappy':
         telefono_contacto = request.form.get('telefono_contacto_yappy', '').strip()
@@ -382,6 +502,10 @@ def confirmar_pago(servicio_id):
         archivo_comprobante = request.files['comprobante_pago']
         if archivo_comprobante.filename == '':
             flash('Debes seleccionar un archivo de comprobante.', 'error')
+            return redirect(url_for('main.tour_detalle', id=servicio_id))
+        valido, mensaje = validar_archivo(archivo_comprobante)
+        if not valido:
+            flash(f'Comprobante inválido: {mensaje}', 'error')
             return redirect(url_for('main.tour_detalle', id=servicio_id))
     else:
         telefono_contacto = request.form.get('telefono_contacto', '').strip()
@@ -418,7 +542,6 @@ def confirmar_pago(servicio_id):
     cliente = current_user.get_cliente()
 
     try:
-        db.session.execute(text("START TRANSACTION"))
 
         if telefono_contacto:
             cliente.telefono = telefono_contacto
@@ -450,6 +573,9 @@ def confirmar_pago(servicio_id):
             d += timedelta(days=1)
 
         promocion = servicio.get_promocion_activa()
+        if promocion:
+            from app.models.promocion import Promocion
+            promocion = Promocion.query.filter_by(id=promocion.id).with_for_update().first()
         codigo = generar_codigo_transaccion()
 
         if promocion:
@@ -504,7 +630,9 @@ def confirmar_pago(servicio_id):
                 'numero_personas': numero_personas,
                 'comprobante': nombre_archivo
             }
-            ruta_json = os.path.join(current_app.root_path, 'static', 'comprobantes', f'transaccion_{reserva.id}_{codigo}.json')
+            json_dir = os.path.join(current_app.root_path, 'json_transacciones')
+            os.makedirs(json_dir, exist_ok=True)
+            ruta_json = os.path.join(json_dir, f'transaccion_{reserva.id}_{codigo}.json')
             with open(ruta_json, 'w', encoding='utf-8') as f:
                 json.dump(datos_json, f, ensure_ascii=False, indent=2)
             reserva.datos_transaccion = json.dumps(datos_json, ensure_ascii=False)
@@ -558,10 +686,11 @@ def confirmar_pago(servicio_id):
 
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al procesar el pago: {str(e)}', 'error')
+        current_app.logger.error(f'Error al procesar el pago: {e}')
+        flash('Error al procesar el pago. Intenta de nuevo.', 'error')
         return redirect(url_for('main.tour_detalle', id=servicio_id))
 
-@main_bp.route('/procesar-pago-pendiente')
+@main_bp.route('/pp')
 @login_required
 def procesar_pago_pendiente():
     datos = session.pop('reserva_pendiente', None)
@@ -572,7 +701,7 @@ def procesar_pago_pendiente():
     flash('Confirma los datos y procede al pago.', 'info')
     return redirect(url_for('main.tour_detalle', id=datos['servicio_id']))
 
-@main_bp.route('/mis-reservas')
+@main_bp.route('/mr')
 @login_required
 def mis_reservas():
     cliente = current_user.get_cliente()
@@ -585,7 +714,7 @@ def mis_reservas():
     
     return render_template('mis_reservas.html', reservas=reservas)
 
-@main_bp.route('/cancelar-reserva/<int:reserva_id>', methods=['POST'])
+@main_bp.route('/cr/<int:reserva_id>', methods=['POST'])
 @login_required
 def cancelar_reserva(reserva_id):
     reserva = Reserva.query.get_or_404(reserva_id)
@@ -599,23 +728,32 @@ def cancelar_reserva(reserva_id):
         return redirect(url_for('main.mis_reservas'))
     
     try:
-        db.session.execute(text("START TRANSACTION"))
-        
-        disp = Disponibilidad.query.filter_by(
-            servicio_id=reserva.servicio_id,
-            fecha=reserva.fecha_gira
-        ).with_for_update().first()
-        
-        if disp:
-            disp.cupos_disponibles += reserva.numero_personas
-        
+        fecha_inicio = reserva.fecha_gira.date() if hasattr(reserva.fecha_gira, 'date') else reserva.fecha_gira
+        fecha_fin = reserva.fecha_fin.date() if reserva.fecha_fin and hasattr(reserva.fecha_fin, 'date') else reserva.fecha_fin
+        if not fecha_fin:
+            fecha_fin = fecha_inicio
+
+        d = fecha_inicio
+        while d <= fecha_fin:
+            disp = Disponibilidad.query.filter_by(
+                servicio_id=reserva.servicio_id,
+                fecha=d
+            ).with_for_update().first()
+            if disp:
+                disp.cupos_disponibles = min(
+                    disp.cupos_disponibles + reserva.numero_personas,
+                    Servicio.query.get(reserva.servicio_id).cupo_maximo
+                )
+            d += timedelta(days=1)
+
         reserva.estado = 'cancelada'
         db.session.commit()
-        
+
         flash('Reserva cancelada exitosamente.', 'success')
-        
+
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al cancelar la reserva: {str(e)}', 'error')
+        current_app.logger.error(f'Error al cancelar la reserva: {e}')
+        flash('Error al cancelar la reserva. Intenta de nuevo.', 'error')
     
     return redirect(url_for('main.mis_reservas'))

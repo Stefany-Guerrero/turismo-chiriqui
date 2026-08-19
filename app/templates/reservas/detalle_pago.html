@@ -1,91 +1,154 @@
 {% extends "base.html" %}
-{% block title %}Resumen de Pago{% endblock %}
+{% block page_title %}Comprobante de reserva #{{ reserva.id }}{% endblock %}
+{% block title %}Comprobante de reserva #{{ reserva.id }}{% endblock %}
 {% block content %}
 <div class="container py-4 factura-print">
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      <div class="text-center mb-4">
-        <h3 class="fw-bold mb-1" style="color: #1b5e20;">Resumen de Pago</h3>
-        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
-          <i class="fas fa-check-circle me-1"></i> Reserva confirmada
-        </span>
+      <div class="text-center mb-4 factura-marca">
+        <i class="fas fa-mountain" style="color: #0B6E4F; font-size: 1.8rem;"></i>
+        <h3 class="fw-bold mb-0" style="color: #12372E;">TURISMO CHIRIQUÍ</h3>
+        <small class="text-muted" style="letter-spacing: 3px; text-transform: uppercase;">Descubre el paraíso</small>
       </div>
 
       <div class="card border-0 shadow-sm mb-4 overflow-hidden factura-card">
-        {% if reserva.servicio %}
-        <div class="factura-header" style="background: linear-gradient(135deg, #1b5e20, #2e7d32); padding: 24px 28px 18px;">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 mb-2" style="background: rgba(255,255,255,0.15); font-size: 11px;">{{ reserva.servicio.categoria_nombre }}</span>
-              <h4 class="text-white mb-1 fw-bold factura-tour-name">{{ reserva.servicio.nombre }}</h4>
-              <p class="text-white-50 mb-0 small"><i class="fas fa-map-marker-alt me-1"></i> {{ reserva.servicio.destino }}</p>
-            </div>
-            <div class="text-end">
-              <div class="text-white-50 small">Referencia</div>
-              <div class="text-white fw-bold" style="font-family: monospace; font-size: 1.1rem;">{{ reserva.codigo_transaccion or '—' }}</div>
-              <div class="text-white-50 small mt-2">Fecha de pago</div>
-              <div class="text-white fw-bold" style="font-size: 0.95rem;">{{ reserva.fecha_creacion.strftime('%d/%m/%Y %I:%M %p') if reserva.fecha_creacion else '—' }}</div>
-            </div>
+        <div class="factura-header text-center" style="background: linear-gradient(135deg, #06332A 0%, #0B6E4F 55%, #0D9488 100%); padding: 34px 28px;">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white mb-3" style="width: 64px; height: 64px;">
+            <i class="fas fa-check-circle text-success fs-2"></i>
           </div>
-        </div>
-        {% endif %}
-
-        <div class="card-body p-4">
-          <div class="row g-3 mb-3 factura-info-row">
-            <div class="col-4 text-center">
-              <div class="text-muted small text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Fecha</div>
-              <div class="fw-bold">{{ reserva.fecha_gira.strftime('%d/%m/%Y') if reserva.fecha_gira else '—' }}</div>
-            </div>
-            <div class="col-4 text-center">
-              <div class="text-muted small text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Viajeros</div>
-              <div class="fw-bold">{{ reserva.numero_personas }}</div>
-            </div>
-            <div class="col-4 text-center">
-              <div class="text-muted small text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Estado</div>
-              <div class="fw-bold text-success">Pagado</div>
-            </div>
+          <div class="text-white fw-bold text-uppercase" style="letter-spacing: 4px; font-size: 1.15rem;">Pago confirmado</div>
+          <p class="text-white-50 mb-2">Tu reserva ha sido confirmada correctamente.</p>
+          <div class="badge bg-white rounded-pill px-4 py-2" style="color: #06332A; font-size: 1rem;">
+            Reserva <strong>#{{ reserva.id }}</strong>
           </div>
-
-          <hr class="my-3" style="border-style: dashed;">
-
-          <div class="row g-2 mb-0 factura-prices">
-            <div class="col-6 text-muted small">Subtotal</div>
-            <div class="col-6 text-end small">B/.{{ "%.2f"|format(reserva.subtotal) }}</div>
-            <div class="col-6 text-muted small">ITBMS (7%)</div>
-            <div class="col-6 text-end small">B/.{{ "%.2f"|format(reserva.itbms) }}</div>
-            <div class="col-12"><hr class="my-1"></div>
-            <div class="col-6 fw-bold">Total pagado</div>
-            <div class="col-6 text-end fw-bold fs-5" style="color: #2e7d32;">B/.{{ "%.2f"|format(reserva.total_pago) }}</div>
-          </div>
-
-          {% if reserva.metodo_pago == 'tarjeta' and reserva.tipo_tarjeta %}
-          <div class="mt-3 pt-2 border-top small text-muted factura-payment-method">
-            <i class="fab fa-cc-{{ reserva.tipo_tarjeta }} me-1"></i>
-            {{ reserva.tipo_tarjeta|capitalize }} terminada en {{ reserva.ultimos_digitos }}
-            · Transacción: {{ reserva.codigo_transaccion }}
-          </div>
+          {% if reserva.codigo_transaccion %}
+          <div class="text-white-50 small mt-3">Transacción</div>
+          <div class="text-white fw-bold" style="font-family: monospace; font-size: 1.05rem;">{{ reserva.codigo_transaccion }}</div>
           {% endif %}
         </div>
       </div>
 
+      {% if reserva.servicio %}
       <div class="card border-0 shadow-sm mb-4 factura-details">
         <div class="card-body p-4">
-          <h6 class="fw-bold mb-3" style="color: #1b5e20;"><i class="fas fa-receipt me-2"></i>Detalles del pago</h6>
-          <div class="row g-2">
+          <h6 class="fw-bold mb-3" style="color: #059669;"><i class="fas fa-ticket-alt me-2"></i>Tu reserva</h6>
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Tour</span>
+            <span class="fw-bold text-end">{{ reserva.servicio.nombre }}</span>
+          </div>
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Destino</span>
+            <span class="fw-bold text-end">{{ reserva.servicio.destino }}{% if reserva.servicio.provincia %}, {{ reserva.servicio.provincia }}{% endif %}</span>
+          </div>
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Fecha del viaje</span>
+            <span class="fw-bold text-end">{{ reserva.fecha_gira|fecha_larga if reserva.fecha_gira else '—' }}</span>
+          </div>
+          <div class="d-flex justify-content-between py-2">
+            <span class="text-muted">Viajeros</span>
+            <span class="fw-bold text-end">{{ reserva.numero_personas }} persona{{ 's' if reserva.numero_personas != 1 else '' }}</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% set hora_encuentro = reserva.servicio.hora_salida_tour or reserva.servicio.hora_inicio if reserva.servicio else None %}
+      {% set hora_regreso = reserva.servicio.hora_regreso_tour or reserva.servicio.hora_estimada_regreso if reserva.servicio else None %}
+      {% set punto_encuentro = reserva.servicio.punto_salida if reserva.servicio else None %}
+      {% if hora_encuentro or hora_regreso or punto_encuentro %}
+      <div class="card border-0 shadow-sm mb-4 factura-details">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3" style="color: #059669;"><i class="fas fa-map-pin me-2"></i>Información de salida</h6>
+          {% if punto_encuentro %}
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Punto de encuentro</span>
+            <span class="fw-bold text-end">{{ punto_encuentro }}</span>
+          </div>
+          {% endif %}
+          {% if hora_encuentro %}
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Hora de encuentro</span>
+            <span class="fw-bold text-end">{{ hora_encuentro|hora_12 }}</span>
+          </div>
+          {% endif %}
+          {% if hora_regreso %}
+          <div class="d-flex justify-content-between py-2">
+            <span class="text-muted">Hora estimada de regreso</span>
+            <span class="fw-bold text-end">{{ hora_regreso|hora_12 }}</span>
+          </div>
+          {% endif %}
+          <small class="text-muted d-block mt-3"><i class="fas fa-clock me-1"></i> Te recomendamos llegar 15 minutos antes de la hora de encuentro.</small>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if reserva.servicio and (reserva.servicio.incluye or reserva.servicio.incluye_guia or reserva.servicio.incluye_alimentacion or reserva.servicio.incluye_hospedaje or reserva.servicio.incluye_seguro or reserva.servicio.incluye_entradas or reserva.servicio.incluye_equipo or reserva.servicio.incluye_transporte) %}
+      <div class="card border-0 shadow-sm mb-4 factura-details">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3" style="color: #059669;"><i class="fas fa-check-circle me-2"></i>Incluye</h6>
+          {% if reserva.servicio.incluye %}
+            {% for item in reserva.servicio.incluye.split('\n') if reserva.servicio.incluye %}
+              {% if item|trim %}
+              <div class="d-flex align-items-center py-1">
+                <i class="fas fa-check text-success me-2"></i>
+                <span>{{ item|trim }}</span>
+              </div>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            {% if reserva.servicio.incluye_guia %}<div class="d-flex align-items-center py-1"><i class="fas fa-check text-success me-2"></i>Guía turístico</div>{% endif %}
+            {% if reserva.servicio.incluye_alimentacion %}<div class="d-flex align-items-center py-1"><i class="fas fa-check text-success me-2"></i>Alimentación</div>{% endif %}
+            {% if reserva.servicio.incluye_hospedaje %}<div class="d-flex align-items-center py-1"><i class="fas fa-check text-success me-2"></i>Hospedaje</div>{% endif %}
+            {% if reserva.servicio.incluye_seguro %}<div class="d-flex align-items-center py-1"><i class="fas fa-check text-success me-2"></i>Seguro de viaje</div>{% endif %}
+            {% if reserva.servicio.incluye_entradas %}<div class="d-flex align-items-center py-1"><i class="fas fa-check text-success me-2"></i>Entradas y tarifas</div>{% endif %}
+            {% if reserva.servicio.incluye_equipo %}<div class="d-flex align-items-center py-1"><i class="fas fa-check text-success me-2"></i>Equipo especial</div>{% endif %}
+            {% if reserva.servicio.incluye_transporte %}<div class="d-flex align-items-center py-1"><i class="fas fa-check text-success me-2"></i>Transporte</div>{% endif %}
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card border-0 shadow-sm mb-4 factura-details">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3" style="color: #059669;"><i class="fas fa-receipt me-2"></i>Resumen del pago</h6>
+          {% if reserva.subtotal and reserva.subtotal > 0 %}
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Tour{% if reserva.transporte and reserva.transporte != 'no_requiere' %} + transporte{% endif %}</span>
+            <span>B/.{{ "%.2f"|format(reserva.subtotal) }}</span>
+          </div>
+          {% endif %}
+          {% if reserva.itbms and reserva.itbms > 0 %}
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">ITBMS (7%)</span>
+            <span>B/.{{ "%.2f"|format(reserva.itbms) }}</span>
+          </div>
+          {% endif %}
+          {% if reserva.descuento_aplicado and reserva.descuento_aplicado > 0 %}
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span class="text-muted">Descuento</span>
+            <span class="text-success">-B/.{{ "%.2f"|format(reserva.descuento_aplicado) }}</span>
+          </div>
+          {% endif %}
+          <div class="d-flex justify-content-between align-items-center py-3 mt-1 rounded-3 px-3" style="background: #EAF7EF;">
+            <span class="fw-bold fs-5" style="color: #0B6E4F;">TOTAL PAGADO</span>
+            <span class="fw-bold fs-4" style="color: #0B6E4F;">B/.{{ "%.2f"|format(reserva.total_pago) }}</span>
+          </div>
+
+          <div class="row g-2 mt-3">
             <div class="col-sm-6">
-              <div class="text-muted small">Fecha de pago</div>
-              <div class="fw-bold">{{ reserva.fecha_creacion.strftime('%d/%m/%Y %I:%M %p') if reserva.fecha_creacion else '—' }}</div>
+              <div class="text-muted small">Estado</div>
+              <div class="fw-bold text-success"><i class="fas fa-check-circle me-1"></i>Pagado</div>
             </div>
             <div class="col-sm-6">
-              <div class="text-muted small">Transacción</div>
-              <div class="fw-bold" style="font-family: monospace;">{{ reserva.codigo_transaccion or '—' }}</div>
+              <div class="text-muted small">Fecha de compra</div>
+              <div class="fw-bold">{{ reserva.fecha_creacion|local_datetime('%d/%m/%Y %I:%M %p') if reserva.fecha_creacion else '—' }}</div>
             </div>
             <div class="col-sm-6">
-              <div class="text-muted small">Método</div>
+              <div class="text-muted small">Método de pago</div>
               <div class="fw-bold">
                 {% if reserva.metodo_pago == 'tarjeta' and reserva.tipo_tarjeta %}
-                  {{ reserva.tipo_tarjeta|capitalize }} **** {{ reserva.ultimos_digitos }}
+                  <i class="fab fa-cc-{{ reserva.tipo_tarjeta }} me-1"></i>{{ reserva.tipo_tarjeta|capitalize }} **** {{ reserva.ultimos_digitos }}
                 {% elif reserva.metodo_pago == 'yappy' %}
                   Yappy
                 {% else %}
@@ -95,31 +158,63 @@
             </div>
             {% if reserva.metodo_pago == 'tarjeta' and reserva.titular_tarjeta %}
             <div class="col-sm-6">
-              <div class="text-muted small">Titular tarjeta</div>
-              <div class="fw-bold">{{ reserva.titular_tarjeta }}</div>
-            </div>
-            {% endif %}
-            <div class="col-sm-6">
               <div class="text-muted small">Pagado por</div>
-              <div class="fw-bold">{{ reserva.cliente.usuario.nombre_completo if reserva.cliente and reserva.cliente.usuario else '—' }}</div>
-            </div>
-            {% if reserva.metodo_pago == 'yappy' and reserva.comprobante_pago %}
-            <div class="col-sm-6">
-              <div class="text-muted small">Comprobante</div>
-              <div class="fw-bold">
-                <a href="{{ url_for('static', filename='comprobantes/' + reserva.comprobante_pago) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill">
-                  <i class="fas fa-image me-1"></i> Ver comprobante
-                </a>
-              </div>
+              <div class="fw-bold">{{ reserva.titular_tarjeta }}</div>
             </div>
             {% endif %}
           </div>
         </div>
       </div>
 
+      {% if reserva.cliente %}
+      <div class="card border-0 shadow-sm mb-4 factura-details">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3" style="color: #059669;"><i class="fas fa-user me-2"></i>Datos del viajero</h6>
+          <div class="row g-2">
+            <div class="col-sm-6">
+              <div class="text-muted small">Nombre</div>
+              <div class="fw-bold">{{ reserva.cliente.nombre or '—' }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Email</div>
+              <div class="fw-bold">{{ reserva.cliente.email or (reserva.cliente.usuario.email if reserva.cliente.usuario else '—') }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Teléfono</div>
+              <div class="fw-bold">{{ reserva.cliente.telefono or '—' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card border-0 shadow-sm mb-4 factura-details">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3" style="color: #059669;"><i class="fas fa-shield-alt me-2"></i>Políticas de reserva</h6>
+          <ul class="small mb-0" style="line-height: 2; padding-left: 1.2rem;">
+            <li>Llegar 15 minutos antes de la hora de encuentro.</li>
+            <li>Cancelación sin cargo hasta 48 horas antes de la fecha del tour.</li>
+            <li>Reembolsos se procesan según las condiciones de cancelación.</li>
+            <li>Cambios de fecha sujetos a disponibilidad del tour.</li>
+            <li>En caso de condiciones climáticas adversas, aplican las políticas del operador.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4 factura-details factura-help">
+        <div class="card-body p-4 text-center">
+          <h6 class="fw-bold mb-3" style="color: #059669;"><i class="fas fa-headset me-2"></i>¿Necesitas ayuda?</h6>
+          <div class="d-flex flex-wrap justify-content-center gap-4">
+            <span class="text-muted"><i class="fas fa-envelope text-success me-1"></i> soporte@turismochiriqui.com</span>
+            <span class="text-muted"><i class="fas fa-phone text-success me-1"></i> +507 6000-0000</span>
+            <span class="text-muted"><i class="fas fa-globe text-success me-1"></i> www.turismochiriqui.com</span>
+          </div>
+        </div>
+      </div>
+
       <div class="text-center no-print">
         <button class="btn btn-outline-success btn-sm rounded-pill px-4 me-2" onclick="window.print()">
-          <i class="fas fa-print me-1"></i> Imprimir
+          <i class="fas fa-print me-1"></i> Imprimir / PDF
         </button>
         <a href="{{ url_for('main.mis_reservas') }}" class="btn btn-success btn-sm rounded-pill px-4 me-2">
           <i class="fas fa-arrow-left me-1"></i> Mis reservas
@@ -137,14 +232,17 @@
 <style>
 @media print {
   @page { margin: 0; }
-  body { background: #fff !important; padding: 15mm !important; }
+  html, body { height: auto !important; overflow: visible !important; }
+  body { background: #fff !important; }
+  .main-content, .content-wrapper { min-height: 0 !important; height: auto !important; }
   .sidebar, .topbar, .main-content > .footer,
   .no-print, .alert, nav, footer,
   .page-title, .user-info, .avatar, .btn-logout { display: none !important; }
   .main-content { margin-left: 0 !important; padding: 0 !important; }
   .content-wrapper { padding: 0 !important; margin: 0 !important; }
-  .factura-print { max-width: 100% !important; padding: 0 !important; }
+  .factura-print { max-width: 100% !important; padding: 10mm 8mm 0 !important; }
   .factura-print .container { max-width: 100% !important; padding: 0 !important; }
+  .factura-print .factura-details:last-of-type { margin-bottom: 0 !important; }
   .factura-card, .factura-details {
     box-shadow: none !important;
     border: 1px solid #ddd !important;
@@ -154,6 +252,7 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+  .factura-help { display: none !important; }
   .card { break-inside: avoid; }
 }
 </style>

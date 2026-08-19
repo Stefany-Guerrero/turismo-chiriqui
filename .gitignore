@@ -36,6 +36,10 @@ logo_b64.txt
 logo_base64.txt
 test_factura.pdf
 
+# Archivos generados por usuarios / transacciones
+app/static/comprobantes/
+json_transacciones/
+
 # Instrucciones personales de trabajo (OpenCode) - contienen credenciales
 NEXT_SESSION_PROMPT.md
 REGLAS.md

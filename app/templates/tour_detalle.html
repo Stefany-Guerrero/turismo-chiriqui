@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block page_title %}Detalle del Tour{% endblock %}
 {% block title %}{{ servicio.nombre }}{% endblock %}
 
 {% block content %}
@@ -48,11 +49,12 @@
             </div>
             {% endif %}
             
+            {% if servicio.incluye %}
             <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h5 class="fw-bold"><i class="fas fa-check-circle text-success"></i> Incluye</h5>
                     <ul class="list-unstyled mb-0" style="font-size: 1rem;">
-                        {% for item in servicio.incluye.split('\n') if servicio.incluye %}
+                        {% for item in servicio.incluye.split('\n') %}
                         {% if item|trim %}
                         <li class="mb-2"><i class="fas fa-check text-success me-2"></i> {{ item|trim }}</li>
                         {% endif %}
@@ -60,6 +62,7 @@
                     </ul>
                 </div>
             </div>
+            {% endif %}
             
             {% if servicio.no_incluye %}
             <div class="card mb-4 shadow-sm">
@@ -120,72 +123,7 @@
                     <hr>
                     
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <a href="{{ url_for('main.tour_detalle', id=servicio.id, mes=mes_actual-1, año=año_actual if mes_actual > 1 else año_actual-1) }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                            <span class="fw-bold fs-5">{{ calendario.nombre_mes }} {{ calendario.año }}</span>
-                            <a href="{{ url_for('main.tour_detalle', id=servicio.id, mes=mes_actual+1, año=año_actual if mes_actual < 12 else año_actual+1) }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </div>
-                        
-                        <table class="table table-bordered text-center" style="font-size: 0.9rem; width: 100%;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-center" style="width: 14.28%;">L</th>
-                                    <th class="text-center" style="width: 14.28%;">M</th>
-                                    <th class="text-center" style="width: 14.28%;">M</th>
-                                    <th class="text-center" style="width: 14.28%;">J</th>
-                                    <th class="text-center" style="width: 14.28%;">V</th>
-                                    <th class="text-center" style="width: 14.28%;">S</th>
-                                    <th class="text-center" style="width: 14.28%;">D</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% set primer_dia = calendario.primer_dia_semana %}
-                                {% set dias = calendario.dias %}
-                                {% set total_dias = calendario.total_dias %}
-                                
-                                {% for semana in range((total_dias + primer_dia + 6) // 7) %}
-                                <tr>
-                                    {% for dia_semana in range(7) %}
-                                        {% set dia_num = semana * 7 + dia_semana - primer_dia + 1 %}
-                                        {% if dia_num >= 1 and dia_num <= total_dias %}
-                                            {% set dia_info = dias[dia_num - 1] %}
-                                            <td class="text-center align-middle" style="padding: 8px 4px;">
-                                                {% if dia_info.es_pasado %}
-                                                    <span class="text-secondary" style="font-size: 0.9rem;">{{ dia_info.dia }}</span>
-                                                {% elif dia_info.disponible %}
-                                                    <button class="btn btn-sm btn-success w-100" 
-                                                       onclick="seleccionarFecha('{{ dia_info.fecha.strftime('%Y-%m-%d') }}')"
-                                                       style="font-size: 0.85rem; padding: 6px 0; border-radius: 6px;">
-                                                        {{ dia_info.dia }}
-                                                    </button>
-                                                {% else %}
-                                                    <span class="text-danger" style="font-size: 0.9rem;">{{ dia_info.dia }}</span>
-                                                {% endif %}
-                                            </td>
-                                        {% else %}
-                                            <td></td>
-                                        {% endif %}
-                                    {% endfor %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        
-                        <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-                            <span class="badge bg-success" style="font-size: 0.8rem;">Disponible</span>
-                            <span class="badge bg-danger" style="font-size: 0.8rem;">No disponible</span>
-                            <span class="badge bg-secondary" style="font-size: 0.8rem;">Pasado</span>
-                        </div>
-                        
-                        <div class="mt-2 text-center">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar-check"></i> {{ calendario.total_disponibles }} días disponibles este mes
-                            </small>
-                        </div>
+                        {% include 'tour_calendario.html' %}
                     </div>
                     
                     <hr>
@@ -279,14 +217,50 @@
 </div>
 
 <script>
+function cargarCalendario(mes, año) {
+    var cont = document.getElementById('calendario-container');
+    if (!cont) return;
+    cont.style.opacity = '0.45';
+    cont.style.pointerEvents = 'none';
+    var url = '/tour/{{ servicio.id }}/calendario?mes=' + mes + '&año=' + encodeURIComponent(año);
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            var tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            var nuevo = tmp.querySelector('#calendario-container');
+            if (nuevo) {
+                cont.replaceWith(nuevo);
+                CUPOS_POR_FECHA = JSON.parse(nuevo.dataset.cupos || '{}');
+                resaltarFechaSeleccionada();
+            }
+        })
+        .catch(function() {
+            cont.style.opacity = '1';
+            cont.style.pointerEvents = '';
+            alert('No se pudo actualizar el calendario. Intenta de nuevo.');
+        });
+}
+
 function sumarDias(fecha, dias) {
     var d = new Date(fecha);
     d.setDate(d.getDate() + dias);
     return d.toISOString().split('T')[0];
 }
 
+function resaltarFechaSeleccionada() {
+    var fecha = document.getElementById('fecha_seleccionada').value;
+    document.querySelectorAll('.calendario-dia').forEach(function(btn) {
+        btn.classList.remove('btn-seleccionada');
+    });
+    if (!fecha) return;
+    var diaBtn = document.querySelector('.calendario-dia[data-fecha="' + fecha + '"]');
+    if (diaBtn) diaBtn.classList.add('btn-seleccionada');
+}
+
 function seleccionarFecha(fecha) {
     document.getElementById('fecha_seleccionada').value = fecha;
+    resaltarFechaSeleccionada();
     
     var cupos = CUPOS_POR_FECHA[fecha];
     if (cupos !== undefined) {
@@ -361,6 +335,17 @@ function calcularCosto() {
 <style>
 .sticky-top {
     z-index: 100;
+}
+.calendario-dia {
+    transition: all 0.15s ease;
+}
+.calendario-dia.btn-seleccionada {
+    background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%) !important;
+    border-color: #F59E0B !important;
+    color: #06332A !important;
+    font-weight: 700;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35);
+    transform: scale(1.06);
 }
 .table td {
     padding: 8px 4px;

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block page_title %}Iniciar Sesión{% endblock %}
 {% block title %}Iniciar Sesión{% endblock %}
 
 {% block content %}
@@ -10,7 +11,7 @@
             <img src="{{ url_for('static', filename='img/logo.png') }}" 
                  alt="Turismo Chiriquí" 
                  class="img-fluid rounded-circle shadow-lg"
-                 style="max-width: 300px; width: 100%; border: 5px solid #28a745;">
+                 style="max-width: 300px; width: 100%; border: 5px solid #0B6E4F;">
             <h2 class="text-success mt-3 fw-bold">Turismo Chiriquí</h2>
             <p class="text-muted">Descubre el paraíso en Panamá</p>
         </div>
@@ -92,7 +93,7 @@
                 </p>
                 <hr class="my-2">
                 <small class="text-muted">
-                    <i class="fas fa-info-circle"></i> Admin: admin@turismo.com / admin2026
+                    <i class="fas fa-lock"></i> Acceso protegido
                 </small>
             </div>
         </div>
@@ -110,7 +111,7 @@
     
     .logo-container img:hover {
         transform: scale(1.02);
-        box-shadow: 0 15px 35px rgba(40, 167, 69, 0.3) !important;
+        box-shadow: 0 15px 35px rgba(11, 110, 79, 0.3) !important;
     }
 </style>
 {% endblock %}

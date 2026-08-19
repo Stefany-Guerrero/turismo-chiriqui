@@ -1,0 +1,69 @@
+<div id="calendario-container" data-cupos='{{ cupos_json|tojson }}'>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cargarCalendario({{ mes_actual - 1 if mes_actual > 1 else 12 }}, {{ año_actual if mes_actual > 1 else año_actual - 1 }})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="fw-bold fs-5">{{ calendario.nombre_mes }} {{ calendario.año }}</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cargarCalendario({{ mes_actual + 1 if mes_actual < 12 else 1 }}, {{ año_actual if mes_actual < 12 else año_actual + 1 }})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <table class="table table-bordered text-center" style="font-size: 0.9rem; width: 100%;">
+        <thead class="table-light">
+            <tr>
+                <th class="text-center" style="width: 14.28%;">L</th>
+                <th class="text-center" style="width: 14.28%;">M</th>
+                <th class="text-center" style="width: 14.28%;">M</th>
+                <th class="text-center" style="width: 14.28%;">J</th>
+                <th class="text-center" style="width: 14.28%;">V</th>
+                <th class="text-center" style="width: 14.28%;">S</th>
+                <th class="text-center" style="width: 14.28%;">D</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set primer_dia = calendario.primer_dia_semana %}
+            {% set dias = calendario.dias %}
+            {% set total_dias = calendario.total_dias %}
+
+            {% for semana in range((total_dias + primer_dia + 6) // 7) %}
+            <tr>
+                {% for dia_semana in range(7) %}
+                    {% set dia_num = semana * 7 + dia_semana - primer_dia + 1 %}
+                    {% if dia_num >= 1 and dia_num <= total_dias %}
+                        {% set dia_info = dias[dia_num - 1] %}
+                        <td class="text-center align-middle" style="padding: 8px 4px;">
+                            {% if dia_info.es_pasado %}
+                                <span class="text-secondary" style="font-size: 0.9rem;">{{ dia_info.dia }}</span>
+                            {% elif dia_info.disponible %}
+                                <button type="button" class="btn btn-sm btn-success w-100 calendario-dia" 
+                                   data-fecha="{{ dia_info.fecha.strftime('%Y-%m-%d') }}"
+                                   onclick="seleccionarFecha('{{ dia_info.fecha.strftime('%Y-%m-%d') }}')"
+                                   style="font-size: 0.85rem; padding: 6px 0; border-radius: 6px;">
+                                    {{ dia_info.dia }}
+                                </button>
+                            {% else %}
+                                <span class="text-danger" style="font-size: 0.9rem;">{{ dia_info.dia }}</span>
+                            {% endif %}
+                        </td>
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+        <span class="badge bg-success" style="font-size: 0.8rem;">Disponible</span>
+        <span class="badge bg-danger" style="font-size: 0.8rem;">No disponible</span>
+        <span class="badge bg-secondary" style="font-size: 0.8rem;">Pasado</span>
+    </div>
+
+    <div class="mt-2 text-center">
+        <small class="text-muted">
+            <i class="fas fa-calendar-check"></i> {{ calendario.total_disponibles }} días disponibles este mes
+        </small>
+    </div>
+</div>

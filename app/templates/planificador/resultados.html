@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block page_title %}Resultados{% endblock %}
 {% block title %}Resultados de tu viaje{% endblock %}
 
 {% block content %}
@@ -63,7 +64,7 @@
                 {% if tour.imagen %}
                 <img src="{{ tour.imagen }}" class="card-img-top" alt="{{ tour.nombre }}" style="height: 180px; object-fit: cover;">
                 {% else %}
-                <img src="https://placehold.co/400x250/28a745/white?text=Turismo" class="card-img-top" alt="{{ tour.nombre }}" style="height: 180px; object-fit: cover;">
+                <img src="https://placehold.co/400x250/0B6E4F/white?text=Turismo" class="card-img-top" alt="{{ tour.nombre }}" style="height: 180px; object-fit: cover;">
                 {% endif %}
                 <div class="card-body">
                     <div class="d-flex justify-content-between">

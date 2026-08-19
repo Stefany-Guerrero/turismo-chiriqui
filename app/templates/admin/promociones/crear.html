@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block page_title %}Nueva Promoción{% endblock %}
 {% block title %}Nueva Promoción{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4">
@@ -82,6 +83,12 @@
                                     {{ form.servicio_id.label(class="form-label") }}
                                     <small class="text-muted d-block mb-1">Tour al que se aplica la promoción. Al elegirlo, el tour se oculta de la lista normal y solo se muestra aquí</small>
                                     {{ form.servicio_id(class="form-select", id="servicio_id") }}
+                                    {% if not tours_data %}
+                                    <div class="alert alert-warning py-2 mt-2 mb-0" style="font-size: 0.85rem;">
+                                        <i class="fas fa-exclamation-triangle"></i> No hay tours activos registrados.
+                                        <a href="{{ url_for('servicios.crear') }}" class="fw-bold">Crea un tour</a> antes de crear una promoción.
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-3">

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block page_title %}Crear Reserva{% endblock %}
 {% block title %}Crear Reserva{% endblock %}
 
 {% block content %}
@@ -19,6 +20,11 @@
                                 <div class="mb-3">
                                     {{ form.cliente_id.label(class="form-label fw-bold") }}
                                     {{ form.cliente_id(class="form-control") }}
+                                    {% if sin_clientes %}
+                                        <div class="alert alert-warning py-2 mt-2 mb-0" style="font-size: 0.85rem;">
+                                            <i class="fas fa-exclamation-triangle"></i> No hay clientes registrados.
+                                        </div>
+                                    {% endif %}
                                     {% if form.cliente_id.errors %}
                                         <div class="text-danger small">
                                             {% for error in form.cliente_id.errors %}
@@ -32,6 +38,11 @@
                                 <div class="mb-3">
                                     {{ form.servicio_id.label(class="form-label fw-bold") }}
                                     {{ form.servicio_id(class="form-control") }}
+                                    {% if sin_servicios %}
+                                        <div class="alert alert-warning py-2 mt-2 mb-0" style="font-size: 0.85rem;">
+                                            <i class="fas fa-exclamation-triangle"></i> No hay tours activos. <a href="{{ url_for('servicios.crear') }}" class="fw-bold">Crear tour</a>
+                                        </div>
+                                    {% endif %}
                                     {% if form.servicio_id.errors %}
                                         <div class="text-danger small">
                                             {% for error in form.servicio_id.errors %}

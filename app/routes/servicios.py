@@ -116,11 +116,13 @@ def crear():
                     db.session.add(tp)
             
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('CREAR_SERVICIO', 'Servicio', servicio.id, f'Tour creado: {servicio.nombre}')
             flash('Tour creado exitosamente', 'success')
             return redirect(url_for('servicios.index'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al crear el tour: {str(e)}', 'error')
+            flash('Error al crear el tour. Verifica los datos.', 'error')
     
     if form.errors:
         for field, errors in form.errors.items():
@@ -268,11 +270,13 @@ def editar(id):
                     db.session.add(tp)
             
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('EDITAR_SERVICIO', 'Servicio', servicio.id, f'Tour actualizado: {servicio.nombre}')
             flash('Tour actualizado exitosamente', 'success')
             return redirect(url_for('servicios.index'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al actualizar el tour: {str(e)}', 'error')
+            flash('Error al actualizar el tour. Verifica los datos.', 'error')
     
     if form.errors:
         for field, errors in form.errors.items():
@@ -313,11 +317,14 @@ def eliminar(id):
         return redirect(url_for('servicios.index'))
     
     try:
+        nombre = servicio.nombre
         db.session.delete(servicio)
         db.session.commit()
+        from app.utils.audit import registrar_auditoria
+        registrar_auditoria('ELIMINAR_SERVICIO', 'Servicio', id, f'Tour eliminado: {nombre}')
         flash('Tour eliminado exitosamente', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al eliminar el tour: {str(e)}', 'error')
+        flash('Error al eliminar el tour.', 'error')
     
     return redirect(url_for('servicios.index'))

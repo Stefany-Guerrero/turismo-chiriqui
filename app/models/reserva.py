@@ -1,6 +1,7 @@
 from app import db
 from datetime import datetime
 from app.utils import panama_now
+import secrets
 
 TRANSPORTE_MAP = {
     'vehiculo_propio': 'Vehículo propio',
@@ -48,6 +49,12 @@ def alojamiento_label(valor):
 class Reserva(db.Model):
     __tablename__ = 'reservas'
 
+    __table_args__ = (
+        db.Index('ix_reservas_servicio_estado', 'servicio_id', 'estado'),
+        db.Index('ix_reservas_cliente_tipo', 'cliente_id', 'tipo'),
+        db.Index('ix_reservas_estado_leido', 'estado', 'leido'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     tipo = db.Column(db.String(20), default='reserva')
     cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False)
@@ -92,11 +99,18 @@ class Reserva(db.Model):
 
     motivo_rechazo = db.Column(db.Text, nullable=True)
 
+    consulta_token = db.Column(db.String(64), unique=True, nullable=True, index=True,
+                               default=lambda: secrets.token_urlsafe(32))
+
     leido = db.Column(db.Boolean, default=False)
     fecha_creacion = db.Column(db.DateTime, default=panama_now)
 
     cliente = db.relationship('Cliente', back_populates='reservas')
     servicio = db.relationship('Servicio', back_populates='reservas')
+
+    def generate_consulta_token(self):
+        self.consulta_token = secrets.token_urlsafe(32)
+        return self.consulta_token
 
     def transporte_nombre(self):
         return transporte_label(self.transporte)

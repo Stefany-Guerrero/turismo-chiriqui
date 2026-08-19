@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from app import db, mail
 from app.models.usuario import Usuario
+from app.utils import rate_limit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,7 +13,18 @@ from app.forms import LoginForm, RegisterForm, ResetPasswordForm, VerifyCodeForm
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+def _validar_next(url):
+    """Solo permite redirecciones internas (evita open redirect)."""
+    if not url:
+        return None
+    if url.startswith('//'):
+        return None
+    if url.startswith('/'):
+        return url
+    return None
+
+
+@auth_bp.route('/lx', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         if current_user.rol == 'admin':
@@ -23,28 +35,60 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         usuario = Usuario.query.filter_by(email=form.email.data).first()
-        
+
+        if usuario and usuario.blocked_until:
+            from app.utils import panama_now
+            if panama_now() < usuario.blocked_until:
+                minutos_restantes = int((usuario.blocked_until - panama_now()).total_seconds() // 60) + 1
+                flash(f'Cuenta temporalmente bloqueada por demasiados intentos fallidos. Intenta en {minutos_restantes} min.', 'error')
+                return render_template('auth/login.html', form=form)
+            else:
+                usuario.failed_login_attempts = 0
+                usuario.blocked_until = None
+                db.session.commit()
+
         if usuario and usuario.check_password(form.password.data):
             if not usuario.activo:
                 flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
                 return render_template('auth/login.html', form=form)
-            
+
+            usuario.failed_login_attempts = 0
+            usuario.blocked_until = None
+            db.session.commit()
+
             login_user(usuario, remember=form.remember_me.data)
             flash(f'¡Bienvenido {usuario.nombre_completo}!', 'success')
-            
-            next_page = request.args.get('next')
-            
+
+            next_page = _validar_next(request.args.get('next'))
+
             if usuario.rol == 'admin':
                 return redirect(next_page) if next_page else redirect(url_for('auth.dashboard'))
             else:
                 return redirect(next_page) if next_page else redirect(url_for('main.index'))
         else:
-            flash('Correo electrónico o contraseña incorrectos.', 'error')
-    
+            from app.utils import panama_now
+            from datetime import timedelta
+            if usuario:
+                usuario.failed_login_attempts = (usuario.failed_login_attempts or 0) + 1
+                max_intentos = current_app.config.get('MAX_LOGIN_ATTEMPTS', 5)
+                if usuario.failed_login_attempts >= max_intentos:
+                    minutos = current_app.config.get('LOGIN_BLOCK_MINUTES', 15)
+                    usuario.blocked_until = panama_now() + timedelta(minutes=minutos)
+                    usuario.failed_login_attempts = 0
+                    db.session.commit()
+                    flash(f'Demasiados intentos fallidos. Cuenta bloqueada por {minutos} minutos.', 'error')
+                    return render_template('auth/login.html', form=form)
+                restantes = max_intentos - usuario.failed_login_attempts
+                db.session.commit()
+                flash(f'Correo o contraseña incorrectos. Quedan {restantes} intentos antes del bloqueo temporal.', 'error')
+            else:
+                flash('Correo electrónico o contraseña incorrectos.', 'error')
+
     return render_template('auth/login.html', form=form)
 
 
-@auth_bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route('/rx', methods=['GET', 'POST'])
+@rate_limit(max_attempts=5, window_seconds=600)
 def register():
     if current_user.is_authenticated:
         if current_user.rol == 'admin':
@@ -87,7 +131,7 @@ def register():
     return render_template('auth/register.html', form=form)
 
 
-@auth_bp.route('/logout')
+@auth_bp.route('/ox')
 @login_required
 def logout():
     logout_user()
@@ -95,7 +139,8 @@ def logout():
     return redirect(url_for('auth.login'))
 
 
-@auth_bp.route('/reset-password', methods=['GET', 'POST'])
+@auth_bp.route('/rp', methods=['GET', 'POST'])
+@rate_limit(max_attempts=5, window_seconds=600)
 def reset_password():
     if current_user.is_authenticated:
         if current_user.rol == 'admin':
@@ -121,7 +166,7 @@ def reset_password():
     return render_template('auth/reset_password.html', form=form)
 
 
-@auth_bp.route('/verify-code', methods=['GET', 'POST'])
+@auth_bp.route('/vc', methods=['GET', 'POST'])
 def verify_code():
     if current_user.is_authenticated:
         if current_user.rol == 'admin':
@@ -146,7 +191,7 @@ def verify_code():
     return render_template('auth/verify_code.html', form=form)
 
 
-@auth_bp.route('/new-password', methods=['GET', 'POST'])
+@auth_bp.route('/np', methods=['GET', 'POST'])
 def new_password():
     if current_user.is_authenticated:
         if current_user.rol == 'admin':
@@ -176,7 +221,7 @@ def new_password():
     return render_template('auth/new_password.html', form=form)
 
 
-@auth_bp.route('/dashboard')
+@auth_bp.route('/dx')
 @login_required
 def dashboard():
     if current_user.rol != 'admin':
@@ -238,11 +283,14 @@ def editar_cliente(id):
             if cliente.usuario:
                 cliente.usuario.activo = form.activo.data
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('EDITAR_CLIENTE', 'Cliente', cliente.id, f'Cliente actualizado: {cliente.nombre}')
             flash('Cliente actualizado correctamente.', 'success')
             return redirect(url_for('auth.clientes'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error: {str(e)}', 'danger')
+            logger.error(f'Error editing client: {e}')
+            flash('Error al actualizar el cliente.', 'danger')
     
     return render_template('admin/clientes_editar.html', form=form, cliente=cliente)
 
@@ -262,10 +310,13 @@ def eliminar_cliente(id):
             return redirect(url_for('auth.clientes'))
         db.session.delete(cliente)
         db.session.commit()
+        from app.utils.audit import registrar_auditoria
+        registrar_auditoria('ELIMINAR_CLIENTE', 'Cliente', id, f'Cliente eliminado: {cliente.nombre}')
         flash('Cliente eliminado correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error: {str(e)}', 'danger')
+        logger.error(f'Error deleting client: {e}')
+        flash('Error al eliminar el cliente.', 'danger')
     return redirect(url_for('auth.clientes'))
 
 

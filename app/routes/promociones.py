@@ -33,7 +33,7 @@ def index():
 def crear():
     form = PromocionForm()
     servicios = Servicio.query.filter_by(activo=True).all()
-    form.servicio_id.choices = [(s.id, s.nombre) for s in servicios]
+    form.servicio_id.choices = [('', 'Seleccione un tour')] + [(s.id, s.nombre) for s in servicios]
     tours_data = [{'id': s.id, 'nombre': s.nombre, 'precio': s.precio, 'proveedor': s.proveedor.nombre if s.proveedor else ''} for s in servicios]
     
     if not form.codigo.data and request.method == 'GET':
@@ -65,11 +65,13 @@ def crear():
             )
             db.session.add(promocion)
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('CREAR_PROMOCION', 'Promocion', promocion.id, f'Promoción creada: {promocion.nombre} ({promocion.codigo})')
             flash('Promocion creada', 'success')
             return redirect(url_for('promociones.index'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error: {str(e)}', 'danger')
+            flash('Error al crear la promoción.', 'danger')
     
     return render_template('admin/promociones/crear.html', form=form, tours_data=tours_data)
 
@@ -79,8 +81,11 @@ def crear():
 def editar(id):
     promocion = Promocion.query.get_or_404(id)
     form = PromocionForm(obj=promocion)
-    servicios = Servicio.query.filter_by(activo=True).all()
-    form.servicio_id.choices = [(s.id, s.nombre) for s in servicios]
+    from sqlalchemy import or_
+    servicios = Servicio.query.filter(
+        or_(Servicio.activo == True, Servicio.id == promocion.servicio_id)
+    ).all()
+    form.servicio_id.choices = [('', 'Seleccione un tour')] + [(s.id, s.nombre) for s in servicios]
     tours_data = [{'id': s.id, 'nombre': s.nombre, 'precio': s.precio, 'proveedor': s.proveedor.nombre if s.proveedor else ''} for s in servicios]
     
     if form.validate_on_submit():
@@ -102,11 +107,13 @@ def editar(id):
             promocion.servicio_id = form.servicio_id.data
             promocion.imagen = form.imagen.data
             db.session.commit()
+            from app.utils.audit import registrar_auditoria
+            registrar_auditoria('EDITAR_PROMOCION', 'Promocion', promocion.id, f'Promoción actualizada: {promocion.nombre} ({promocion.codigo})')
             flash('Promocion actualizada', 'success')
             return redirect(url_for('promociones.index'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error: {str(e)}', 'danger')
+            flash('Error al actualizar la promoción.', 'danger')
     
     return render_template('admin/promociones/editar.html', form=form, promocion=promocion, tours_data=tours_data)
 
@@ -116,12 +123,15 @@ def editar(id):
 def eliminar(id):
     promocion = Promocion.query.get_or_404(id)
     try:
+        nombre = promocion.nombre
         db.session.delete(promocion)
         db.session.commit()
+        from app.utils.audit import registrar_auditoria
+        registrar_auditoria('ELIMINAR_PROMOCION', 'Promocion', id, f'Promoción eliminada: {nombre}')
         flash('Promocion eliminada', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error: {str(e)}', 'danger')
+        flash('Error al eliminar la promoción.', 'danger')
     return redirect(url_for('promociones.index'))
 
 @promociones_bp.route('/cambiar-estado/<int:id>', methods=['POST'])
@@ -132,10 +142,12 @@ def cambiar_estado(id):
     try:
         promocion.activa = not promocion.activa
         db.session.commit()
+        from app.utils.audit import registrar_auditoria
+        registrar_auditoria('CAMBIAR_ESTADO_PROMOCION', 'Promocion', promocion.id, f'Estado promoción "{promocion.nombre}": {"activa" if promocion.activa else "inactiva"}')
         flash('Estado cambiado', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error: {str(e)}', 'danger')
+        flash('Error al cambiar el estado.', 'danger')
     return redirect(url_for('promociones.index'))
 
 @promociones_bp.route('/api/validar', methods=['POST'])

@@ -5,6 +5,10 @@ from app.utils import panama_now
 class Promocion(db.Model):
     __tablename__ = 'promociones'
     
+    __table_args__ = (
+        db.Index('ix_promos_servicio_activa_fechas', 'servicio_id', 'activa', 'fecha_inicio', 'fecha_fin'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.Text)
