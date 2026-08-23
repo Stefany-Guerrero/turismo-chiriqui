@@ -104,7 +104,13 @@ mysql -u root -p turismo_chiriqui < backup_completo.sql
 
 ### 5. Configurar variables de entorno
 
-Crea un archivo `.env` en la raíz del proyecto con estas variables:
+Crea un archivo `.env` en la raíz del proyecto. Puedes copiar el ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+Luego edita el archivo `.env` con tus datos:
 
 ```env
 # Base de datos
@@ -114,19 +120,24 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=turismo_chiriqui
 
-# Clave secreta para sesiones (genera una propia)
+# Clave secreta para sesiones
 SECRET_KEY=tu_clave_secreta_aqui
 
-# Correo electrónico (opcional)
+# Correo electronico (necesario para notificaciones a clientes)
 MAIL_USERNAME=tu_correo@gmail.com
-MAIL_PASSWORD=tu_contraseña_de_aplicacion
+MAIL_PASSWORD=tu_contraseña_de_aplicacion_de_gmail
 MAIL_DEFAULT_SENDER=tu_correo@gmail.com
 
 # URL base
 BASE_URL=http://localhost:5000
+
+# Contraseña inicial del admin
+ADMIN_INITIAL_PASSWORD=admin2026
 ```
 
-> **Nota:** Si no configuras `SECRET_KEY`, se generará una automáticamente cada vez que inicie el servidor (las sesiones se perderán al reiniciar).
+> **Nota sobre el correo:** Las notificaciones se envían por Gmail. Necesitas una **contraseña de aplicación** de Google (no tu contraseña normal). Para generarla ve a [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
+
+> **Nota sobre SECRET_KEY:** Si no la configuras, se genera automáticamente cada vez que inicia el servidor (las sesiones se perderán al reiniciar).
 
 ### 6. Iniciar el servidor
 
