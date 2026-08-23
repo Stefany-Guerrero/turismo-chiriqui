@@ -148,7 +148,9 @@ La primera vez se creará automáticamente:
 | Campo | Valor |
 |-------|-------|
 | Email | `admin@turismo.com` |
-| Contraseña | Se genera automáticamente la primera vez (revisar consola) |
+| Contraseña | `admin2026` |
+
+> Si necesitas cambiar la contraseña inicial, agrega `ADMIN_INITIAL_PASSWORD=tu_nueva_contraseña` en el archivo `.env` antes de iniciar el servidor por primera vez.
 
 ### Base de Datos
 | Campo | Valor |
