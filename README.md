@@ -89,8 +89,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configurar la base de datos
+### 4. Configurar bases de datos
 
+El proyecto utiliza **dos bases de datos**:
+
+#### MariaDB (principal) — Puerto 3306
 Asegúrate de que MariaDB/MySQL esté corriendo. Luego crea la base de datos:
 
 ```sql
@@ -101,6 +104,9 @@ O restaura desde un backup si tienes uno disponible:
 ```bash
 mysql -u root -p turismo_chiriqui < backup_completo.sql
 ```
+
+#### MongoDB (sincronización secundaria) — Puerto 27017
+MongoDB se usa para sincronizar datos de forma secundaria. Debe estar corriendo en `localhost:27017` o en la IP que configures en `MONGO_URI`.
 
 ### 5. Configurar variables de entorno
 
