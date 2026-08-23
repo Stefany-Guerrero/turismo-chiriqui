@@ -39,6 +39,7 @@
                             <td>
                                 {% if s.estado == 'pendiente' %}
                                     <form method="POST" action="{{ url_for('solicitudes.cotizar', id=s.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <input type="number" name="cotizacion" class="form-control form-control-sm" style="width:100px;display:inline;" placeholder="Precio" required>
                                         <button type="submit" class="btn btn-sm btn-success">Cotizar</button>
                                     </form>

@@ -18,6 +18,7 @@
                     <p class="text-muted">Cuéntanos cómo quieres vivir tu experiencia y te mostraremos los mejores tours</p>
                     
                     <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         {{ form.hidden_tag() }}
                         
                         <div class="row">

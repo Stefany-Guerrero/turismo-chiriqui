@@ -14,6 +14,7 @@
         </div>
         <div class="card-body p-4">
           <form method="POST" action="{{ url_for('solicitudes.confirmar_pago_solicitud', id=solicitud.id) }}" id="form-pago" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-4">
               <label class="form-label fw-bold">Método de pago</label>
               <div class="d-flex gap-3 flex-wrap">

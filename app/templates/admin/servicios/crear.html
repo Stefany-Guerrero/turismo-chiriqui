@@ -13,6 +13,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         {{ form.hidden_tag() }}
                         
                         <h5 class="mt-2">1. Información General</h5>

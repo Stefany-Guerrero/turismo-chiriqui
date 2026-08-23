@@ -87,6 +87,7 @@
                             {% else %}
                                 {% if reserva.codigo_transaccion %}
                                 <form action="{{ url_for('reservas.detalle_pago') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="reserva_id" value="{{ reserva.id }}">
                                     <button type="submit" class="btn btn-sm btn-outline-success" title="Ver recibo">
                                         <i class="fas fa-receipt"></i>
@@ -95,6 +96,7 @@
                                 {% endif %}
                                 {% if reserva.estado == 'pendiente' %}
                                 <form action="{{ url_for('reservas.cancelar', id=reserva.id) }}" method="POST" style="display:inline" onsubmit="return confirm('¿Cancelar reserva?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button class="btn btn-sm btn-outline-danger" type="submit" title="Cancelar">
                                         <i class="fas fa-times"></i>
                                     </button>

@@ -23,6 +23,7 @@
                     {% endif %}
                     
                     <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         {{ form.hidden_tag() }}
                         
                         <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-calendar"></i> Fechas y duración</h5>

@@ -52,8 +52,8 @@ def detalle(id):
         import json
         try:
             datos = json.dumps(json.loads(reserva.datos_transaccion), indent=2, ensure_ascii=False)
-        except:
-            pass
+        except Exception:
+            datos = None
     return render_template('admin/transacciones/detalle.html',
                          reserva=reserva,
                          datos=datos)

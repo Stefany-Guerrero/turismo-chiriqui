@@ -306,6 +306,7 @@
 
                                         <!-- ADMIN ACTIONS -->
                                         <form method="POST" action="{{ url_for('solicitudes.actualizar_solicitud', id=solicitud.id) }}" id="formSolicitud{{ solicitud.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <div class="row">
                                                 <div class="col-md-4">
                                                     <label class="form-label"><i class="fas fa-tag"></i> Estado</label>

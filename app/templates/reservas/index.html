@@ -128,19 +128,29 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     {% if reserva.tipo == 'solicitud' %}
-                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='pendiente') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Pendiente</button></form></li>
-                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='en_proceso') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">En proceso</button></form></li>
-                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='cotizada') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Cotizada</button></form></li>
-                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='aprobada') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Aprobada</button></form></li>
-                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='rechazada') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Rechazada</button></form></li>
+                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='pendiente') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Pendiente</button></form></li>
+                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='en_proceso') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">En proceso</button></form></li>
+                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='cotizada') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Cotizada</button></form></li>
+                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='aprobada') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Aprobada</button></form></li>
+                                    <li><form action="{{ url_for('solicitudes.cambiar_estado_solicitud', id=reserva.id, estado='rechazada') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Rechazada</button></form></li>
                                     {% else %}
-                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='pendiente') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Pendiente</button></form></li>
-                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='confirmada') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Confirmada</button></form></li>
-                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='completada') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Completada</button></form></li>
-                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='cancelada') }}" method="POST" style="display:inline"><button class="dropdown-item" type="submit">Cancelada</button></form></li>
+                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='pendiente') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Pendiente</button></form></li>
+                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='confirmada') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Confirmada</button></form></li>
+                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='completada') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Completada</button></form></li>
+                                    <li><form action="{{ url_for('reservas.cambiar_estado', id=reserva.id, estado='cancelada') }}" method="POST" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit">Cancelada</button></form></li>
                                     {% endif %}
                                 </ul>
                                 <form action="{{ url_for('reservas.eliminar', id=reserva.id) }}" method="POST" style="display:inline" onsubmit="return confirm('¿Eliminar esta reserva?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button class="btn btn-outline-danger" type="submit">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -149,6 +159,7 @@
                             {% else %}
                                 {% if reserva.estado == 'pendiente' %}
                                 <form action="{{ url_for('reservas.cancelar', id=reserva.id) }}" method="POST" style="display:inline" onsubmit="return confirm('¿Cancelar?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button class="btn btn-sm btn-outline-danger" type="submit">
                                         Cancelar
                                     </button>

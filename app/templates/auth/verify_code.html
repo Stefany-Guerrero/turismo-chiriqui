@@ -15,6 +15,7 @@
             <div class="card-body p-4">
                 <p class="text-center text-muted small"><i class="fas fa-envelope"></i> Hemos enviado un código a tu correo.</p>
                 <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {{ form.hidden_tag() }}
                     <div class="mb-3">
                         {{ form.codigo.label(class="form-label fw-bold") }}

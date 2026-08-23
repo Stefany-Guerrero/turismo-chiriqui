@@ -181,8 +181,8 @@ def buscar():
                             dias_disponibles.append(d)
                     d += timedelta(days=1)
                 dias_info[s.id] = dias_disponibles
-        except:
-            pass
+        except Exception as e:
+            current_app.logger.warning(f'Error calculando disponibilidad: {e}')
     
     if tipo_duracion == 'oferta':
         ofertas = servicios
@@ -393,7 +393,10 @@ def pagar(servicio_id):
 
     fecha_gira = request.form.get('fecha_gira')
     fecha_fin = request.form.get('fecha_fin')
-    numero_personas = int(request.form.get('numero_personas', 1))
+    try:
+        numero_personas = int(request.form.get('numero_personas', 1))
+    except (ValueError, TypeError):
+        numero_personas = 1
     if numero_personas < 1 or numero_personas > 50:
         flash('Número de personas inválido (1-50).', 'error')
         return redirect(url_for('main.tour_detalle', id=servicio_id))
@@ -475,7 +478,10 @@ def confirmar_pago(servicio_id):
 
     fecha_gira = request.form.get('fecha_gira')
     fecha_fin = request.form.get('fecha_fin')
-    numero_personas = int(request.form.get('numero_personas', 1))
+    try:
+        numero_personas = int(request.form.get('numero_personas', 1))
+    except (ValueError, TypeError):
+        numero_personas = 1
     if numero_personas < 1 or numero_personas > 50:
         flash('Número de personas inválido (1-50).', 'error')
         return redirect(url_for('main.tour_detalle', id=servicio_id))

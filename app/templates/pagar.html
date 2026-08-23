@@ -14,6 +14,7 @@
         </div>
         <div class="card-body p-4">
           <form method="POST" action="{{ url_for('main.confirmar_pago', servicio_id=servicio.id) }}" id="form-pago" enctype="multipart/form-data" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="fecha_gira" value="{{ fecha_gira }}">
             <input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
             <input type="hidden" name="numero_personas" value="{{ numero_personas }}">

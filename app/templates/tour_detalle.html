@@ -158,6 +158,7 @@
                     {% endif %}
 
                     <form method="POST" action="{{ url_for('main.pagar', servicio_id=servicio.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="fecha_gira" id="fecha_seleccionada" value="">
                         {% if es_extendido %}
                         <input type="hidden" name="fecha_fin" id="fecha_fin" value="">
