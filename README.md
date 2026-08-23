@@ -226,6 +226,4 @@ python run.py
 - Rutas administrativas protegidas con `@login_required` y `@admin_required`
 - Registro de auditoría de acciones sensibles
 
-## Licencia
 
-Proyecto académico — Universidad Tecnológica del Istmo
