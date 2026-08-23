@@ -32,7 +32,7 @@ def _get_db():
     except Exception:
         if _client:
             try: _client.close()
-            except: pass
+            except Exception: pass
         _client = None
         _db = None
     if _db is None:

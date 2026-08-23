@@ -110,7 +110,7 @@ def create_app():
             from app.models.reserva import Reserva
             try:
                 _pendientes_cache['count'] = Reserva.query.filter_by(tipo='solicitud', estado='pendiente', leido=False).count()
-            except:
+            except Exception:
                 _pendientes_cache['count'] = 0
             _pendientes_cache['ts'] = now
         return dict(solicitudes_pendientes=_pendientes_cache['count'])
