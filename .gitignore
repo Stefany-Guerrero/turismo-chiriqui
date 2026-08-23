@@ -22,8 +22,7 @@ instance/
 *.db
 *.sqlite3
 
-# Backups y dumps SQL (no son codigo fuente)
-*.sql
+# Backups y dumps SQL comprimidos
 *.sql.gz
 backup.cnf
 restore.cnf
